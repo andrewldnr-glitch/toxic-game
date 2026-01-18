@@ -13,6 +13,7 @@ body, html {
 /* --- Загрузочный экран --- */
 #loadingScreen {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -21,7 +22,14 @@ body, html {
   font-weight: 700;
   background: linear-gradient(135deg, #141E30, #243B55);
   color: #fff;
-  flex-direction: column;
+  transition: opacity 0.5s ease;
+}
+
+#logoText {
+  font-size: 64px;
+  font-weight: 900;
+  color: #ff4e50;
+  margin-bottom: 20px;
 }
 
 /* --- Экран выбора уровня --- */
@@ -130,11 +138,6 @@ button.correct {
   align-items: center;
 }
 
-button.correct:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(0, 200, 255, 0.7);
-}
-
 /* --- Ложные кнопки --- */
 button.fake {
   background: linear-gradient(135deg, #ff4e50, #f9d423);
@@ -148,11 +151,6 @@ button.fake {
   align-items: center;
 }
 
-button.fake:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(255, 150, 50, 0.7);
-}
-
 /* --- Кнопка перезапуска --- */
 button.restart {
   border: none;
@@ -163,9 +161,4 @@ button.restart {
   cursor: pointer;
   background: linear-gradient(135deg, #00ff6a, #00c851);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-button.restart:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(0, 255, 100, 0.7);
 }
