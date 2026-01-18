@@ -7,20 +7,19 @@ const gameContainer = document.getElementById("gameContainer");
 const startGameBtn = document.getElementById("startGameBtn");
 
 let realButton = null;
+let score = 0;
 
 // === LOADING → LEVEL ===
 setTimeout(() => {
   loadingScreen.style.display = "none";
   levelScreen.style.display = "flex";
-  console.log("LEVEL SCREEN SHOWN");
-}, 1500);
+}, 1200);
 
 // === LEVEL → PREP ===
 document.querySelectorAll("[data-level]").forEach(btn => {
   btn.addEventListener("click", () => {
     levelScreen.style.display = "none";
     prepScreen.style.display = "flex";
-    console.log("PREP SCREEN SHOWN");
   });
 });
 
@@ -30,31 +29,47 @@ startGameBtn.addEventListener("click", () => {
   startGame();
 });
 
-// === GAME START ===
+// === START GAME ===
 function startGame() {
-  console.log("GAME STARTED");
-
-  gameContainer.style.display = "block";
+  score = 0;
   gameContainer.innerHTML = "";
+  gameContainer.style.display = "block";
 
   spawnButton();
 }
 
-// === REAL BUTTON ===
+// === SPAWN REAL BUTTON ===
 function spawnButton() {
   realButton = document.createElement("button");
-  realButton.textContent = "НАЖМИ МЕНЯ";
+  realButton.textContent = "ЖМИ";
 
   realButton.style.position = "absolute";
-  realButton.style.left = "50%";
-  realButton.style.top = "50%";
-  realButton.style.transform = "translate(-50%, -50%)";
-  realButton.style.padding = "20px 40px";
-  realButton.style.fontSize = "20px";
+  realButton.style.width = "120px";
+  realButton.style.height = "60px";
+  realButton.style.fontSize = "18px";
+  realButton.style.cursor = "pointer";
 
-  realButton.onclick = () => {
-    alert("КНОПКА РАБОТАЕТ");
-  };
+  moveButton();
+
+  realButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    score++;
+    realButton.textContent = `ЖМИ (${score})`;
+    moveButton();
+  });
 
   gameContainer.appendChild(realButton);
+}
+
+// === MOVE BUTTON INSIDE CONTAINER ===
+function moveButton() {
+  const rect = gameContainer.getBoundingClientRect();
+  const btnWidth = 120;
+  const btnHeight = 60;
+
+  const x = Math.random() * (rect.width - btnWidth);
+  const y = Math.random() * (rect.height - btnHeight);
+
+  realButton.style.left = x + "px";
+  realButton.style.top = y + "px";
 }
