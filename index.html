@@ -1,43 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOXIC Premium Game</title>
-<link rel="stylesheet" href="main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Токсичная Игра</title>
+  <link rel="stylesheet" href="main.css">
 </head>
 <body>
 
-<!-- Загрузка -->
-<div id="loadingScreen">
-  <div id="gameLogo">TOXIC</div>
-  <div id="loadingMessage">Проверяем твою реакцию...</div>
-  <div class="loader"></div>
-</div>
-
-<!-- Выбор уровня сложности -->
-<div id="levelScreen" style="display:none;">
-  <p class="social">Выбери уровень, если осмелишься</p>
-  <div class="levelButtons">
-    <button data-level="easy">Easy — «Боишься?»</button>
-    <button data-level="medium">Medium — «Думаешь справишься?»</button>
-    <button data-level="hard">Hard — «Удачи, тебе понадобится!»</button>
-    <button data-level="insane">Insane — «Только для отчаянных»</button>
+  <!-- --- Загрузочный экран --- -->
+  <div id="loadingScreen">
+    <h1>Загрузка...</h1>
+    <p>Приготовься к испытанию!</p>
   </div>
-</div>
 
-<!-- Подготовка к игре -->
-<div id="prepScreen" style="display:none;">
-  <p class="social" id="prepMessage"></p>
-  <button id="startGameBtn">Нажми если смелый</button>
-</div>
+  <!-- --- Выбор уровня --- -->
+  <div id="levelScreen">
+    <h2>Выбери уровень сложности</h2>
+    <div class="levelButtons">
+      <button data-level="easy">Лёгкий</button>
+      <button data-level="medium">Средний</button>
+      <button data-level="hard">Сложный</button>
+      <button data-level="insane">Безумие</button>
+    </div>
+  </div>
 
-<!-- Игровой контейнер -->
-<div id="gameContainer" style="display:none;">
-  <p class="social" id="scoreText">Очки: 0</p>
-  <p class="sub" id="timerText">Время: 0.00s</p>
-</div>
+  <!-- --- Экран подготовки --- -->
+  <div id="prepScreen">
+    <p id="prepMessage">Готов? Ну давай...</p>
+    <button id="startGameBtn">Начать игру</button>
+  </div>
 
-<script src="engine.js"></script>
+  <!-- --- Игровой контейнер --- -->
+  <div id="gameContainer">
+    <div id="scoreText">Очки: 0</div>
+    <div id="timerText">Время: 0.00s</div>
+    <!-- Кнопки будут добавляться динамически из engine.js -->
+  </div>
+
+  <!-- --- Скрипты --- -->
+  <script src="engine.js"></script>
+
 </body>
 </html>
