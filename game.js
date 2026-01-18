@@ -6,10 +6,8 @@ const container = document.getElementById("gameContainer");
 const loadingScreen = document.getElementById("loadingScreen");
 const loadingMessage = document.getElementById("loadingMessage");
 
-// Случайная фраза на загрузке
 loadingMessage.innerText = getRandomLoadingMessage();
 
-// Через 2.5 секунды скрываем загрузку и запускаем игру
 setTimeout(() => {
   loadingScreen.style.display = "none";
   container.style.display = "block";
