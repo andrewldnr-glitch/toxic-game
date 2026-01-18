@@ -1,5 +1,3 @@
-
-
 body {
   margin: 0;
   padding: 0;
@@ -12,6 +10,7 @@ body {
   overflow: hidden;
 }
 
+/* Контейнер игры */
 #gameContainer {
   position: relative;
   width: 90vw;
@@ -37,51 +36,24 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-#gameContainer::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.08) 3%, transparent 3%);
-  background-size: 30px 30px;
-  animation: moveParticles 25s linear infinite;
-  pointer-events: none;
-}
-
-#gameContainer::after {
-  content: "";
-  position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 60%);
-  filter: blur(100px);
-  animation: floatGradient 20s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes moveParticles {
-  0% { background-position: 0 0; }
-  100% { background-position: 200px 200px; }
-}
-
-@keyframes floatGradient {
-  0% { transform: translate(0,0) rotate(0deg); }
-  100% { transform: translate(50px,-50px) rotate(15deg); }
+button.correct, button.fake, #startGameBtn, .levelButtons button {
+  border-radius: 12px;
+  padding: 12px 25px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 button.correct {
   background: linear-gradient(145deg, #4facfe, #00f2fe);
   color: #fff;
-  border-radius: 15px;
-  padding: 12px 25px;
-  font-weight: 700;
-  font-size: 16px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
 }
 
 button.correct:hover {
@@ -92,22 +64,25 @@ button.correct:hover {
 button.fake {
   background: linear-gradient(145deg, #ff6b6b, #ff3b30);
   color: #fff;
-  border-radius: 15px;
-  padding: 12px 25px;
-  font-weight: 700;
-  font-size: 16px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
 }
 
 button.fake:hover {
   transform: scale(1.1);
   box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+}
+
+.levelButtons button {
+  margin: 10px;
+  background: #222;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+}
+
+.levelButtons button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
 }
 
 p.social {
@@ -124,6 +99,7 @@ p.sub {
   text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
 }
 
+/* Загрузка */
 #loadingScreen {
   display: flex;
   flex-direction: column;
