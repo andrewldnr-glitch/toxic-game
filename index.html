@@ -40,6 +40,8 @@
         <div id="levelText" class="hud__level">Уровень: Лёгкий</div>
         <div id="timerText" class="hud__timer">Время: 0.00s</div>
       </header>
+      <!-- Всплывающие демотиваторы во время игры -->
+      <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
       <div id="playfield" class="playfield" aria-label="Игровое поле"></div>
     </main>
 
@@ -56,6 +58,7 @@
 
   <!-- Telegram WebApp SDK (без него Mini App не видит tg-объект) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="demotivators.js"></script>
   <script src="engine.js"></script>
 </body>
 </html>
