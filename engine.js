@@ -23,11 +23,11 @@ export function startEngine(container, updateScoreCallback) {
     btn.style.alignItems = "center";
     btn.style.textAlign = "center";
 
-    // Скрываем кнопку для точного измерения
+    // Скрываем кнопку для измерения
     btn.style.visibility = "hidden";
     container.appendChild(btn);
 
-    // Fit-text
+    // Fit-text: уменьшаем font-size пока текст не помещается
     let fontSize = 20;
     btn.style.fontSize = fontSize + "px";
     while ((btn.scrollWidth > btn.clientWidth - 4 || btn.scrollHeight > btn.clientHeight - 4) && fontSize > 10) {
@@ -35,10 +35,14 @@ export function startEngine(container, updateScoreCallback) {
       btn.style.fontSize = fontSize + "px";
     }
 
-    btn.style.visibility = "visible";
+    // Безопасное позиционирование внутри контейнера
+    const maxTop = container.clientHeight - height;
+    const maxLeft = container.clientWidth - width;
+    btn.style.top = Math.random() * maxTop + "px";
+    btn.style.left = Math.random() * maxLeft + "px";
 
-    btn.style.top = Math.random() * 85 + "%";
-    btn.style.left = Math.random() * 85 + "%";
+    // Делаем видимой
+    btn.style.visibility = "visible";
 
     return btn;
   }
@@ -82,8 +86,11 @@ export function startEngine(container, updateScoreCallback) {
       updateScoreCallback(score);
 
       if(Math.random() > 0.5) {
-        btn.style.top = Math.random() * 85 + "%";
-        btn.style.left = Math.random() * 85 + "%";
+        // Плавное перемещение
+        const maxTop = container.clientHeight - btn.offsetHeight;
+        const maxLeft = container.clientWidth - btn.offsetWidth;
+        btn.style.top = Math.random() * maxTop + "px";
+        btn.style.left = Math.random() * maxLeft + "px";
       } else {
         btn.remove();
         setTimeout(createRealButton, 300);
