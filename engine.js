@@ -4,10 +4,16 @@ const loadingScreen = document.getElementById("loadingScreen");
 const levelScreen = document.getElementById("levelScreen");
 const prepScreen = document.getElementById("prepScreen");
 const gameContainer = document.getElementById("gameContainer");
+
 const startGameBtn = document.getElementById("startGameBtn");
+
+const resultScreen = document.getElementById("resultScreen");
+const resultText = document.getElementById("resultText");
+const retryBtn = document.getElementById("retryBtn");
 
 let realButton = null;
 let score = 0;
+let gameActive = false;
 
 // === LOADING → LEVEL ===
 setTimeout(() => {
@@ -32,6 +38,9 @@ startGameBtn.addEventListener("click", () => {
 // === START GAME ===
 function startGame() {
   score = 0;
+  gameActive = true;
+
+  resultScreen.style.display = "none";
   gameContainer.innerHTML = "";
   gameContainer.style.display = "block";
 
@@ -53,6 +62,8 @@ function spawnButton() {
 
   realButton.addEventListener("click", (e) => {
     e.stopPropagation();
+    if (!gameActive) return;
+
     score++;
     realButton.textContent = `ЖМИ (${score})`;
     moveButton();
@@ -61,7 +72,7 @@ function spawnButton() {
   gameContainer.appendChild(realButton);
 }
 
-// === MOVE BUTTON INSIDE CONTAINER ===
+// === MOVE BUTTON ===
 function moveButton() {
   const rect = gameContainer.getBoundingClientRect();
   const btnWidth = 120;
@@ -73,3 +84,27 @@ function moveButton() {
   realButton.style.left = x + "px";
   realButton.style.top = y + "px";
 }
+
+// === CLICK MISS ===
+gameContainer.addEventListener("click", () => {
+  if (!gameActive) return;
+  endGame();
+});
+
+// === END GAME ===
+function endGame() {
+  gameActive = false;
+
+  if (realButton) realButton.remove();
+
+  gameContainer.style.display = "none";
+
+  resultText.textContent = `Ты продержался ${score} раз(а). Не впечатляет.`;
+  resultScreen.style.display = "flex";
+}
+
+// === RETRY ===
+retryBtn.addEventListener("click", () => {
+  resultScreen.style.display = "none";
+  startGame();
+});
