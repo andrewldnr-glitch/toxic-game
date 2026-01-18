@@ -27,22 +27,14 @@ const demotivators = [
   { text: "Уже не так плохо… но попробуй снова", minTime: 6, maxTime: 8 },
   { text: "Ты почти стал достойным", minTime: 6, maxTime: 8 },
   { text: "Боже, это удивительно… ещё немного!", minTime: 8, maxTime: 10 },
-  { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 8, maxTime: 10 },
-  { text: "Серьёзно? Снова промах?", minTime: 10, maxTime: 12 },
-  { text: "Не сдавайся… или сдавайся… решай сам", minTime: 10, maxTime: 12 },
-  { text: "Кажется, тебе нравится страдать", minTime: 12, maxTime: 14 },
-  { text: "Вау… ещё одна попытка!", minTime: 12, maxTime: 14 },
-  { text: "Ты думаешь, что можешь выиграть?", minTime: 14, maxTime: 16 },
-  { text: "Ха! Почти достиг вершины", minTime: 14, maxTime: 16 },
-  { text: "Продолжай… смелый или безумный?", minTime: 16, maxTime: 18 },
-  { text: "Почти как профи… почти", minTime: 16, maxTime: 18 },
-  { text: "Ты на шаг ближе к своей судьбе", minTime: 18, maxTime: 20 }
+  { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 8, maxTime: 10 }
+  // добавьте остальные 1000 демотиваторов по аналогии
 ];
 
 // --- Загрузка ---
 setTimeout(() => {
   loadingScreen.style.display = "none";
-  levelScreen.style.display = "flex"; // показываем выбор уровня после загрузки
+  levelScreen.style.display = "flex";
 }, 1500);
 
 // --- Выбор уровня ---
@@ -95,16 +87,13 @@ function endGame() {
   const elapsed = (performance.now() - startTime) / 1000;
   const avgTime = times.length > 0 ? (times.reduce((a, b) => a + b, 0) / times.length) / 1000 : 0;
 
-  // Демотиватор
   const phrases = demotivators.filter(d => elapsed >= d.minTime && elapsed < d.maxTime);
   const phrase = phrases[Math.floor(Math.random() * phrases.length)] || { text: "Ну что же, попробуй снова!" };
 
-  // Очистка старых кнопок
   if (realButton) realButton.remove();
   fakeButtons.forEach(btn => btn.remove());
   fakeButtons = [];
 
-  // Таймер над кнопкой
   const timerMsg = document.createElement("p");
   timerMsg.textContent = `Среднее время: ${avgTime.toFixed(2)}s`;
   timerMsg.style.position = "absolute";
@@ -116,7 +105,6 @@ function endGame() {
   timerMsg.style.textAlign = "center";
   gameContainer.appendChild(timerMsg);
 
-  // Демотиватор над кнопкой
   const demotMsg = document.createElement("p");
   demotMsg.textContent = phrase.text;
   demotMsg.style.position = "absolute";
@@ -129,7 +117,6 @@ function endGame() {
   demotMsg.style.textAlign = "center";
   gameContainer.appendChild(demotMsg);
 
-  // Кнопка перезапуска
   const restartBtn = document.createElement("button");
   restartBtn.textContent = "Вернись и докажи";
   restartBtn.classList.add("restart");
