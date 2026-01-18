@@ -6,7 +6,7 @@ const container = document.getElementById("gameContainer");
 const loadingScreen = document.getElementById("loadingScreen");
 const loadingMessage = document.getElementById("loadingMessage");
 
-// Показ случайного демотиватора на экране загрузки
+// Случайная фраза на загрузке
 loadingMessage.innerText = getRandomLoadingMessage();
 
 // Через 2.5 секунды скрываем загрузку и запускаем игру
