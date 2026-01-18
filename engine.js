@@ -15,13 +15,13 @@ let realButton = null;
 let score = 0;
 let gameActive = false;
 
-// === LOADING → LEVEL ===
+// === LOADING ===
 setTimeout(() => {
   loadingScreen.style.display = "none";
   levelScreen.style.display = "flex";
 }, 1200);
 
-// === LEVEL → PREP ===
+// === LEVEL ===
 document.querySelectorAll("[data-level]").forEach(btn => {
   btn.addEventListener("click", () => {
     levelScreen.style.display = "none";
@@ -29,14 +29,15 @@ document.querySelectorAll("[data-level]").forEach(btn => {
   });
 });
 
-// === PREP → GAME ===
+// === START ===
 startGameBtn.addEventListener("click", () => {
   prepScreen.style.display = "none";
   startGame();
 });
 
-// === START GAME ===
 function startGame() {
+  console.log("GAME STARTED");
+
   score = 0;
   gameActive = true;
 
@@ -47,7 +48,6 @@ function startGame() {
   spawnButton();
 }
 
-// === SPAWN REAL BUTTON ===
 function spawnButton() {
   realButton = document.createElement("button");
   realButton.textContent = "ЖМИ";
@@ -65,45 +65,41 @@ function spawnButton() {
     if (!gameActive) return;
 
     score++;
-    realButton.textContent = `ЖМИ (${score})`;
     moveButton();
   });
 
   gameContainer.appendChild(realButton);
 }
 
-// === MOVE BUTTON ===
 function moveButton() {
   const rect = gameContainer.getBoundingClientRect();
-  const btnWidth = 120;
-  const btnHeight = 60;
+  const btnW = 120;
+  const btnH = 60;
 
-  const x = Math.random() * (rect.width - btnWidth);
-  const y = Math.random() * (rect.height - btnHeight);
+  const x = Math.random() * (rect.width - btnW);
+  const y = Math.random() * (rect.height - btnH);
 
   realButton.style.left = x + "px";
   realButton.style.top = y + "px";
 }
 
-// === CLICK MISS ===
+// === MISS CLICK ===
 gameContainer.addEventListener("click", () => {
   if (!gameActive) return;
   endGame();
 });
 
-// === END GAME ===
 function endGame() {
-  gameActive = false;
+  console.log("GAME OVER");
 
+  gameActive = false;
   if (realButton) realButton.remove();
 
   gameContainer.style.display = "none";
-
-  resultText.textContent = `Ты продержался ${score} раз(а). Не впечатляет.`;
+  resultText.textContent = `Очков: ${score}. Могло быть хуже.`;
   resultScreen.style.display = "flex";
 }
 
-// === RETRY ===
 retryBtn.addEventListener("click", () => {
   resultScreen.style.display = "none";
   startGame();
