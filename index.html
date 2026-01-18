@@ -8,14 +8,15 @@
 </head>
 <body>
 
-  <!-- --- Загрузочный экран --- -->
+  <!-- Загрузочный экран -->
   <div id="loadingScreen">
     <h1 id="logoText">Toxic</h1>
+    <img src="logo.png" alt="Логотип" style="width:120px; margin-bottom:20px;">
     <p>Приготовься к испытанию!</p>
   </div>
 
-  <!-- --- Выбор уровня --- -->
-  <div id="levelScreen">
+  <!-- Выбор уровня -->
+  <div id="levelScreen" style="display:none;">
     <h2>Выбери уровень сложности</h2>
     <div class="levelButtons">
       <button data-level="easy">Лёгкий</button>
@@ -25,14 +26,14 @@
     </div>
   </div>
 
-  <!-- --- Экран подготовки --- -->
-  <div id="prepScreen">
+  <!-- Экран подготовки -->
+  <div id="prepScreen" style="display:none;">
     <p id="prepMessage">Готов? Ну давай...</p>
     <button id="startGameBtn">Начать игру</button>
   </div>
 
-  <!-- --- Игровой контейнер --- -->
-  <div id="gameContainer">
+  <!-- Игровой контейнер -->
+  <div id="gameContainer" style="display:none;">
     <div id="scoreText">Очки: 0</div>
     <div id="timerText">Время: 0.00s</div>
   </div>
