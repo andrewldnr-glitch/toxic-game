@@ -1,3 +1,4 @@
+// === Переменные ===
 const gameContainer = document.getElementById("gameContainer");
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
@@ -15,7 +16,7 @@ let fakeButtons = [];
 let gameActive = false;
 let level = "easy";
 
-// --- Демотиваторы ---
+// === Демотиваторы ===
 const demotivators = [
   { text: "Ты даже пальцем не шевельнул", minTime: 0, maxTime: 2 },
   { text: "Ого… это твой максимум?", minTime: 0, maxTime: 2 },
@@ -28,32 +29,35 @@ const demotivators = [
   { text: "Ты почти стал достойным", minTime: 6, maxTime: 8 },
   { text: "Боже, это удивительно… ещё немного!", minTime: 8, maxTime: 10 },
   { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 8, maxTime: 10 }
-  // добавьте остальные 1000 демотиваторов по аналогии
+  // сюда можно добавить остальные 1000 демотиваторов
 ];
 
-// --- Загрузка ---
-setTimeout(() => {
-  loadingScreen.style.display = "none";
-  levelScreen.style.display = "flex";
-}, 1500);
+// === Старт после загрузки ===
+window.addEventListener("DOMContentLoaded", () => {
+  // 1. Загрузка
+  setTimeout(() => {
+    loadingScreen.style.display = "none";
+    levelScreen.style.display = "flex";
+  }, 1500);
 
-// --- Выбор уровня ---
-document.querySelectorAll(".levelButtons button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    level = btn.getAttribute("data-level");
-    levelScreen.style.display = "none";
-    prepScreen.style.display = "flex";
-    prepMessage.textContent = getPrepMessage(level);
+  // 2. Выбор уровня
+  document.querySelectorAll(".levelButtons button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      level = btn.getAttribute("data-level");
+      levelScreen.style.display = "none";
+      prepScreen.style.display = "flex";
+      prepMessage.textContent = getPrepMessage(level);
+    });
+  });
+
+  // 3. Подготовка и старт игры
+  startGameBtn.addEventListener("click", () => {
+    prepScreen.style.display = "none";
+    startGame();
   });
 });
 
-// --- Подготовка к игре ---
-startGameBtn.addEventListener("click", () => {
-  prepScreen.style.display = "none";
-  startGame();
-});
-
-// --- Сообщения подготовки ---
+// === Подготовительные сообщения ===
 function getPrepMessage(lvl) {
   const messages = {
     easy: "Ты выбрал лёгкий путь... не обольщайся!",
@@ -64,7 +68,7 @@ function getPrepMessage(lvl) {
   return messages[lvl] || "Готов? Ну давай...";
 }
 
-// --- Начало игры ---
+// === Начало игры ===
 function startGame() {
   score = 0;
   times = [];
@@ -75,25 +79,28 @@ function startGame() {
   gameActive = true;
   startTime = performance.now();
 
-  spawnButtons();
+  spawnRealButton();
   document.addEventListener("click", handleMissClick);
 }
 
-// --- Конец игры ---
+// === Конец игры ===
 function endGame() {
   gameActive = false;
   document.removeEventListener("click", handleMissClick);
 
   const elapsed = (performance.now() - startTime) / 1000;
-  const avgTime = times.length > 0 ? (times.reduce((a, b) => a + b, 0) / times.length) / 1000 : 0;
+  const avgTime = times.length > 0 ? (times.reduce((a,b)=>a+b,0)/times.length)/1000 : 0;
 
+  // Демотиватор по времени
   const phrases = demotivators.filter(d => elapsed >= d.minTime && elapsed < d.maxTime);
-  const phrase = phrases[Math.floor(Math.random() * phrases.length)] || { text: "Ну что же, попробуй снова!" };
+  const phrase = phrases[Math.floor(Math.random()*phrases.length)] || { text: "Ну что же, попробуй снова!" };
 
-  if (realButton) realButton.remove();
-  fakeButtons.forEach(btn => btn.remove());
+  // Убираем кнопки
+  if(realButton) realButton.remove();
+  fakeButtons.forEach(btn=>btn.remove());
   fakeButtons = [];
 
+  // Таймер и демотиватор
   const timerMsg = document.createElement("p");
   timerMsg.textContent = `Среднее время: ${avgTime.toFixed(2)}s`;
   timerMsg.style.position = "absolute";
@@ -117,6 +124,7 @@ function endGame() {
   demotMsg.style.textAlign = "center";
   gameContainer.appendChild(demotMsg);
 
+  // Кнопка перезапуска
   const restartBtn = document.createElement("button");
   restartBtn.textContent = "Вернись и докажи";
   restartBtn.classList.add("restart");
@@ -124,7 +132,7 @@ function endGame() {
   restartBtn.style.top = "50%";
   restartBtn.style.left = "50%";
   restartBtn.style.transform = "translate(-50%, -50%)";
-  restartBtn.addEventListener("click", () => {
+  restartBtn.addEventListener("click", ()=>{
     timerMsg.remove();
     demotMsg.remove();
     restartBtn.remove();
@@ -133,99 +141,85 @@ function endGame() {
   gameContainer.appendChild(restartBtn);
 }
 
-// --- Промах по пустому месту ---
+// === Обработка промаха по пустому месту ===
 function handleMissClick(e) {
-  if (!gameActive) return;
-  if (!e.target.classList.contains("correct") && !e.target.classList.contains("fake")) {
+  if(!gameActive) return;
+  if(!e.target.classList.contains("correct") && !e.target.classList.contains("fake")) {
     endGame();
   }
 }
 
-// --- Создание кнопок ---
-function spawnButtons() {
-  if (realButton) realButton.remove();
-  fakeButtons.forEach(btn => btn.remove());
-  fakeButtons = [];
-
+// === Создание реальной кнопки ===
+function spawnRealButton() {
+  if(realButton) realButton.remove();
   realButton = document.createElement("button");
   realButton.classList.add("correct");
   realButton.textContent = "Нажми меня!";
   setButtonSizeAndPosition(realButton);
-  realButton.addEventListener("click", e => {
+  realButton.addEventListener("click", e=>{
     e.stopPropagation();
     const elapsed = performance.now() - startTime;
     times.push(elapsed);
     score++;
     scoreText.textContent = `Очки: ${score}`;
-    timerText.textContent = `Время: ${(elapsed / 1000).toFixed(2)}s`;
+    timerText.textContent = `Время: ${(elapsed/1000).toFixed(2)}s`;
 
-    if (Math.random() < 0.5) moveButtonSmooth(realButton);
-
+    if(Math.random()<0.5) moveButtonSmooth(realButton);
     spawnFakeButtons();
   });
-
   gameContainer.appendChild(realButton);
   spawnFakeButtons();
 }
 
-// --- Ложные кнопки ---
+// === Создание ложных кнопок ===
 function spawnFakeButtons() {
-  fakeButtons.forEach(btn => btn.remove());
+  fakeButtons.forEach(btn=>btn.remove());
   fakeButtons = [];
+  const maxFakes = { easy:2, medium:3, hard:4, insane:5 }[level]||3;
 
-  let maxFakes = { easy: 2, medium: 3, hard: 4, insane: 5 }[level] || 3;
-
-  for (let i = 0; i < maxFakes; i++) {
+  for(let i=0;i<maxFakes;i++){
     const fake = document.createElement("button");
     fake.classList.add("fake");
-    fake.textContent = ["Ложная", "Не та", "Ха!", "Ты хотел это?"][Math.floor(Math.random() * 4)];
+    fake.textContent = ["Ложная","Не та","Ха!","Ты хотел это?"][Math.floor(Math.random()*4)];
     setButtonSizeAndPosition(fake);
-
-    fake.addEventListener("mouseenter", () => {
-      const containerRect = gameContainer.getBoundingClientRect();
+    fake.addEventListener("mouseenter", ()=>{
+      const rect = gameContainer.getBoundingClientRect();
       const size = parseInt(fake.style.width);
-      const newX = Math.random() * (containerRect.width - size);
-      const newY = Math.random() * (containerRect.height - size / 2);
-      fake.style.left = newX + "px";
-      fake.style.top = newY + "px";
+      fake.style.left = Math.random()*(rect.width-size)+"px";
+      fake.style.top = Math.random()*(rect.height-size/2)+"px";
     });
-
-    fake.addEventListener("click", e => {
+    fake.addEventListener("click", e=>{
       e.stopPropagation();
       endGame();
     });
-
     gameContainer.appendChild(fake);
     fakeButtons.push(fake);
   }
 }
 
-// --- Размер и позиция кнопки ---
-function setButtonSizeAndPosition(btn) {
-  const containerRect = gameContainer.getBoundingClientRect();
-  const size = Math.max(60, 120 - score * 3);
-  btn.style.width = size + "px";
-  btn.style.height = size / 2 + "px";
-  btn.style.fontSize = Math.min(Math.floor(size / 4), 16) + "px";
+// === Размер и позиция кнопки ===
+function setButtonSizeAndPosition(btn){
+  const rect = gameContainer.getBoundingClientRect();
+  const size = Math.max(60,120-score*3);
+  btn.style.width = size+"px";
+  btn.style.height = size/2+"px";
+  btn.style.fontSize = Math.min(Math.floor(size/4),16)+"px";
   btn.style.display = "flex";
   btn.style.justifyContent = "center";
   btn.style.alignItems = "center";
   btn.style.position = "absolute";
-
-  const x = Math.random() * (containerRect.width - size);
-  const y = Math.random() * (containerRect.height - size / 2);
-  btn.style.left = x + "px";
-  btn.style.top = y + "px";
+  btn.style.left = Math.random()*(rect.width-size)+"px";
+  btn.style.top = Math.random()*(rect.height-size/2)+"px";
 }
 
-// --- Плавное перемещение реальной кнопки ---
-function moveButtonSmooth(btn) {
-  const containerRect = gameContainer.getBoundingClientRect();
+// === Плавное перемещение реальной кнопки ===
+function moveButtonSmooth(btn){
+  const rect = gameContainer.getBoundingClientRect();
   const size = parseInt(btn.style.width);
-  const newX = Math.random() * (containerRect.width - size);
-  const newY = Math.random() * (containerRect.height - size / 2);
+  const newX = Math.random()*(rect.width-size);
+  const newY = Math.random()*(rect.height-size/2);
   btn.style.transition = "left 0.5s ease, top 0.5s ease";
-  btn.style.left = newX + "px";
-  btn.style.top = newY + "px";
-  setTimeout(() => { btn.style.transition = ""; }, 600);
+  btn.style.left = newX+"px";
+  btn.style.top = newY+"px";
+  setTimeout(()=>{btn.style.transition="";},600);
 }
