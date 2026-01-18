@@ -6,10 +6,11 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #111; /* фон страницы темный, чтобы контраст был */
+  background: #111;
   overflow: hidden;
 }
 
+/* Игровой контейнер с плавным градиентом */
 #gameContainer {
   position: relative;
   width: 90vw;
@@ -22,21 +23,22 @@ body {
   text-align: center;
   overflow: hidden;
 
-  /* Плавный движущийся градиент */
   background: linear-gradient(-45deg, #ff6a00, #ff00ff, #00ffff, #00ff6a);
   background-size: 400% 400%;
   animation: smoothGradient 15s ease infinite;
 }
 
-/* Анимация плавного смещения градиента */
+/* Плавное смещение градиента */
 @keyframes smoothGradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* Кнопки */
-button.correct, button.fake {
+/* Кнопки — фиксированные цвета, не влияют градиенты */
+button.correct {
+  background-color: #007aff;
+  color: #fff;
   border: none;
   border-radius: 12px;
   padding: 10px 20px;
@@ -50,21 +52,23 @@ button.correct, button.fake {
   text-align: center;
 }
 
-button.correct { background-color: #007aff; color: #fff; }
-button.fake { background-color: #ff3b30; color: #fff; }
-
-p.social {
-  font-weight: bold;
-  margin: 10px 0 5px 0;
-}
-
-p.sub {
-  font-size: 14px;
-  margin: 5px 0;
+button.fake {
+  background-color: #ff3b30;
   color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  position: absolute;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-/* Загрузка */
+/* Загрузка — отдельный красивый экран */
 #loadingScreen {
   display: flex;
   flex-direction: column;
