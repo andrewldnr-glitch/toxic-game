@@ -6,6 +6,7 @@ const el = {
   levelScreen: document.getElementById("levelScreen"),
   prepScreen: document.getElementById("prepScreen"),
   gameScreen: document.getElementById("gameScreen"),
+  toast: document.getElementById("toast"),
   playfield: document.getElementById("playfield"),
   resultScreen: document.getElementById("resultScreen"),
 
@@ -123,23 +124,62 @@ let reactionTimesMs = [];
 let timerInterval = null;
 
 // ===== Demotivators =====
-const demotivators = [
-  "Да ладно, это всё, что ты смог?",
-  "Серьёзно? Дальше хуже.",
-  "Попробуй ещё раз, может повезёт.",
-  "Может, это не твоё?",
-  "Ты уже устал, да?",
-  "Почти, но не совсем.",
-  "Ниже плинтуса.",
-  "Даже кот справился бы лучше.",
-];
+// Подхватываем библиотеку из demotivators.js (1500 фраз)
+const DM = window.TOXIC_DEMOTIVATORS;
 
-function getDemotivator(totalSeconds) {
-  // чем дольше продержался — тем мягче
-  if (totalSeconds < 5) return demotivators[6];
-  if (totalSeconds < 10) return demotivators[4];
-  if (totalSeconds < 20) return demotivators[2];
-  return demotivators[1];
+// Фолбэк, если библиотека не загрузилась (чтобы игра не падала)
+const DM_FALLBACK = {
+  tiers: [
+    { during: ["Мимо. Вселенная записала."], end: ["Мимо. Попробуй ещё раз."] },
+    { during: ["Окей. Дышим."], end: ["Неплохо. Почти."] },
+    { during: ["Уже похоже на игру."], end: ["Есть прогресс."] },
+    { during: ["Вот это скорость."], end: ["Кнопка нервничает."] },
+    { during: ["Я почти горжусь."], end: ["Солидно." ] },
+  ],
+};
+
+const dmLib = (DM && DM.tiers && DM.tiers.length) ? DM : DM_FALLBACK;
+
+let toastTimer = null;
+function showToast(message) {
+  if (!el.toast) return;
+  el.toast.textContent = message;
+  el.toast.classList.add("is-show");
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.toast?.classList.remove("is-show");
+  }, 1350);
+}
+
+function pickRandom(arr) {
+  if (!arr || !arr.length) return "";
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getSofteningTier({ score, totalSeconds }) {
+  // Прогресс: очки + маленький бонус за то, что просто живёшь
+  const p = score + totalSeconds * 0.25;
+
+  // Пороги под уровень (чтобы на сложном не зависать в самом жёстком тире навсегда)
+  const thresholds = {
+    easy:   [4, 10, 18, 28],
+    medium: [3,  8, 14, 22],
+    hard:   [3,  7, 12, 18],
+    insane: [2,  6, 10, 15],
+  }[selectedLevelKey] || [4, 10, 18, 28];
+
+  if (p < thresholds[0]) return 0;
+  if (p < thresholds[1]) return 1;
+  if (p < thresholds[2]) return 2;
+  if (p < thresholds[3]) return 3;
+  return 4;
+}
+
+function getDemotivatorLine(type, { score, totalSeconds }) {
+  const tier = getSofteningTier({ score, totalSeconds });
+  const pool = dmLib.tiers[tier] || dmLib.tiers[0];
+  const list = (type === "end") ? pool.end : pool.during;
+  return pickRandom(list) || pickRandom(dmLib.tiers[0]?.end) || "";
 }
 
 // ===== UI flow =====
@@ -187,6 +227,16 @@ el.playfield.addEventListener("pointerdown", (e) => {
 // ===== Game =====
 function startGame() {
   cleanupPlayfield();
+
+  // убрать старый тост (если остался)
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+  if (el.toast) {
+    el.toast.classList.remove("is-show");
+    el.toast.textContent = "";
+  }
 
   score = 0;
   reactionTimesMs = [];
@@ -262,6 +312,13 @@ function spawnRealButton() {
     el.scoreText.textContent = `Очки: ${score}`;
     btn.textContent = `ЖМИ (${score})`;
 
+    // Демотиватор во время игры (реже, чтобы не раздражал)
+    const totalSeconds = (now - gameStartTime) / 1000;
+    if (score === 1 || score % 3 === 0 || Math.random() < 0.22) {
+      const line = getDemotivatorLine("during", { score, totalSeconds });
+      if (line) showToast(line);
+    }
+
     haptic("light");
 
     spawnFakeButtons();
@@ -327,7 +384,7 @@ function endGame() {
     ? (reactionTimesMs.reduce((a, b) => a + b, 0) / reactionTimesMs.length) / 1000
     : 0;
 
-  const demotivator = getDemotivator(totalSeconds);
+  const demotivator = getDemotivatorLine("end", { score, totalSeconds });
 
   // best score per level
   const bestKey = "toxic_best_v1";
