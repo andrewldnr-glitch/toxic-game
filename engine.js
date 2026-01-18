@@ -2,7 +2,6 @@ const gameContainer = document.getElementById("gameContainer");
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
 const loadingScreen = document.getElementById("loadingScreen");
-
 const levelScreen = document.getElementById("levelScreen");
 const prepScreen = document.getElementById("prepScreen");
 const prepMessage = document.getElementById("prepMessage");
@@ -16,34 +15,34 @@ let fakeButtons = [];
 let gameActive = false;
 let level = "easy";
 
-// --- Демотиваторы ---
+// --- Демотиваторы (первые 20 примера, можно расширить до 1000) ---
 const demotivators = [
-  { text: "Ты даже пальцем не шевельнул", minTime: 0, maxTime: 5 },
-  { text: "Ого… это твой максимум?", minTime: 0, maxTime: 5 },
-  { text: "Ты думаешь это игра для слабаков?", minTime: 5, maxTime: 10 },
-  { text: "Неплохо… но смешно", minTime: 5, maxTime: 10 },
-  { text: "Хм, почти смог… можешь лучше", minTime: 10, maxTime: 15 },
-  { text: "Теперь ты начинаешь понимать, о чём игра", minTime: 10, maxTime: 15 },
-  { text: "Уже не так плохо… но попробуй снова", minTime: 15, maxTime: 20 },
-  { text: "Ты почти стал достойным", minTime: 15, maxTime: 20 },
-  { text: "Боже, это удивительно… ещё немного!", minTime: 20, maxTime: 25 },
-  { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 20, maxTime: 25 },
-  { text: "Серьёзно? Снова промах?", minTime: 0, maxTime: 30 },
-  { text: "Не сдавайся… или сдавайся… решай сам", minTime: 0, maxTime: 30 },
-  { text: "Кажется, тебе нравится страдать", minTime: 0, maxTime: 30 },
-  { text: "Вау… ещё одна попытка!", minTime: 5, maxTime: 25 },
-  { text: "Ты думаешь, что можешь выиграть?", minTime: 10, maxTime: 30 },
-  { text: "Ха! Почти достиг вершины", minTime: 15, maxTime: 30 },
-  { text: "Продолжай… смелый или безумный?", minTime: 10, maxTime: 30 },
-  { text: "Почти как профи… почти", minTime: 15, maxTime: 30 },
-  { text: "Ты на шаг ближе к своей судьбе", minTime: 20, maxTime: 35 },
-  { text: "Сможешь ли ты сделать лучше?", minTime: 25, maxTime: 40 }
+  { text: "Ты даже пальцем не шевельнул", minTime: 0, maxTime: 2 },
+  { text: "Ого… это твой максимум?", minTime: 0, maxTime: 2 },
+  { text: "Серьезно? Даже не начал", minTime: 0, maxTime: 2 },
+  { text: "Ты думаешь это игра для слабаков?", minTime: 2, maxTime: 4 },
+  { text: "Неплохо… но смешно", minTime: 2, maxTime: 4 },
+  { text: "Хм, почти смог… можешь лучше", minTime: 4, maxTime: 6 },
+  { text: "Теперь ты начинаешь понимать, о чём игра", minTime: 4, maxTime: 6 },
+  { text: "Уже не так плохо… но попробуй снова", minTime: 6, maxTime: 8 },
+  { text: "Ты почти стал достойным", minTime: 6, maxTime: 8 },
+  { text: "Боже, это удивительно… ещё немного!", minTime: 8, maxTime: 10 },
+  { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 8, maxTime: 10 },
+  { text: "Серьёзно? Снова промах?", minTime: 10, maxTime: 12 },
+  { text: "Не сдавайся… или сдавайся… решай сам", minTime: 10, maxTime: 12 },
+  { text: "Кажется, тебе нравится страдать", minTime: 12, maxTime: 14 },
+  { text: "Вау… ещё одна попытка!", minTime: 12, maxTime: 14 },
+  { text: "Ты думаешь, что можешь выиграть?", minTime: 14, maxTime: 16 },
+  { text: "Ха! Почти достиг вершины", minTime: 14, maxTime: 16 },
+  { text: "Продолжай… смелый или безумный?", minTime: 16, maxTime: 18 },
+  { text: "Почти как профи… почти", minTime: 16, maxTime: 18 },
+  { text: "Ты на шаг ближе к своей судьбе", minTime: 18, maxTime: 20 }
 ];
 
 // --- Загрузка ---
 setTimeout(() => {
   loadingScreen.style.display = "none";
-  levelScreen.style.display = "block";
+  levelScreen.style.display = "flex";
 }, 1500);
 
 // --- Выбор уровня ---
@@ -51,7 +50,7 @@ document.querySelectorAll(".levelButtons button").forEach(btn => {
   btn.addEventListener("click", () => {
     level = btn.getAttribute("data-level");
     levelScreen.style.display = "none";
-    prepScreen.style.display = "block";
+    prepScreen.style.display = "flex";
     prepMessage.textContent = getPrepMessage(level);
   });
 });
@@ -189,6 +188,9 @@ function spawnButtons() {
 
 // --- Ложные кнопки ---
 function spawnFakeButtons() {
+  fakeButtons.forEach(btn => btn.remove());
+  fakeButtons = [];
+
   let maxFakes = { easy: 2, medium: 3, hard: 4, insane: 5 }[level] || 3;
 
   for (let i = 0; i < maxFakes; i++) {
@@ -222,7 +224,7 @@ function setButtonSizeAndPosition(btn) {
   const size = Math.max(60, 120 - score * 3);
   btn.style.width = size + "px";
   btn.style.height = size / 2 + "px";
-  btn.style.fontSize = Math.min(Math.floor(size / 4), 16) + "px"; // масштабируем текст
+  btn.style.fontSize = Math.min(Math.floor(size / 4), 16) + "px";
   btn.style.display = "flex";
   btn.style.justifyContent = "center";
   btn.style.alignItems = "center";
