@@ -15,7 +15,7 @@ let fakeButtons = [];
 let gameActive = false;
 let level = "easy";
 
-// --- Демотиваторы (первые 20 примера, можно расширить до 1000) ---
+// --- Демотиваторы ---
 const demotivators = [
   { text: "Ты даже пальцем не шевельнул", minTime: 0, maxTime: 2 },
   { text: "Ого… это твой максимум?", minTime: 0, maxTime: 2 },
@@ -42,7 +42,7 @@ const demotivators = [
 // --- Загрузка ---
 setTimeout(() => {
   loadingScreen.style.display = "none";
-  levelScreen.style.display = "flex";
+  levelScreen.style.display = "flex"; // показываем выбор уровня после загрузки
 }, 1500);
 
 // --- Выбор уровня ---
@@ -132,16 +132,11 @@ function endGame() {
   // Кнопка перезапуска
   const restartBtn = document.createElement("button");
   restartBtn.textContent = "Вернись и докажи";
+  restartBtn.classList.add("restart");
   restartBtn.style.position = "absolute";
   restartBtn.style.top = "50%";
   restartBtn.style.left = "50%";
   restartBtn.style.transform = "translate(-50%, -50%)";
-  restartBtn.style.fontSize = "18px";
-  restartBtn.style.padding = "12px 25px";
-  restartBtn.style.borderRadius = "12px";
-  restartBtn.style.backgroundColor = "#007aff";
-  restartBtn.style.color = "#fff";
-  restartBtn.style.cursor = "pointer";
   restartBtn.addEventListener("click", () => {
     timerMsg.remove();
     demotMsg.remove();
