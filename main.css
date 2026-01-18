@@ -9,7 +9,6 @@ body, html {
   color: #fff;
 }
 
-/* Загрузка */
 #loadingScreen {
   display: flex;
   flex-direction: column;
@@ -20,7 +19,6 @@ body, html {
   font-size: 24px;
   font-weight: 700;
   background: linear-gradient(135deg, #141E30, #243B55);
-  color: #fff;
 }
 
 #logoText {
@@ -30,8 +28,7 @@ body, html {
   margin-bottom: 20px;
 }
 
-/* Выбор уровня */
-#levelScreen {
+#levelScreen, #prepScreen {
   display: none;
   flex-direction: column;
   justify-content: center;
@@ -48,7 +45,7 @@ body, html {
   flex-wrap: wrap;
 }
 
-.levelButtons button {
+.levelButtons button, #prepScreen button {
   background: linear-gradient(135deg, #6a11cb, #2575fc);
   border: none;
   border-radius: 12px;
@@ -59,44 +56,11 @@ body, html {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.levelButtons button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-}
-
-/* Экран подготовки */
-#prepScreen {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  gap: 20px;
-  text-align: center;
-}
-
-#prepScreen p {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-#prepScreen button {
-  background: linear-gradient(135deg, #ff512f, #dd2476);
-  border: none;
-  border-radius: 12px;
-  padding: 12px 25px;
-  font-size: 18px;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-#prepScreen button:hover {
+.levelButtons button:hover, #prepScreen button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
-/* Игровой контейнер */
 #gameContainer {
   display: none;
   position: relative;
@@ -107,7 +71,6 @@ body, html {
   backdrop-filter: blur(5px);
 }
 
-/* Таймер и счет */
 #scoreText, #timerText {
   position: absolute;
   top: 10px;
@@ -118,7 +81,6 @@ body, html {
 #scoreText { left: 20px; }
 #timerText { right: 20px; }
 
-/* Реальная кнопка */
 button.correct {
   background: linear-gradient(135deg, #00c6ff, #0072ff);
   border: none;
@@ -130,7 +92,6 @@ button.correct {
   align-items: center;
 }
 
-/* Ложные кнопки */
 button.fake {
   background: linear-gradient(135deg, #ff4e50, #f9d423);
   border: none;
@@ -142,7 +103,6 @@ button.fake {
   align-items: center;
 }
 
-/* Кнопка перезапуска */
 button.restart {
   border: none;
   border-radius: 12px;
@@ -151,5 +111,4 @@ button.restart {
   color: #fff;
   cursor: pointer;
   background: linear-gradient(135deg, #00ff6a, #00c851);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
