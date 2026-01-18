@@ -1,49 +1,61 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toxic Game</title>
-  <link rel="stylesheet" href="main.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#141E30" />
+  <title>Toxic Game — Telegram Mini App</title>
+  <link rel="stylesheet" href="main.css" />
 </head>
 <body>
+  <div id="app">
+    <!-- Загрузка -->
+    <section id="loadingScreen" class="screen is-active" aria-live="polite">
+      <h1 id="logoText">Toxic</h1>
+      <p>Приготовься к испытанию!</p>
+    </section>
 
-  <!-- Загрузка -->
-  <div id="loadingScreen" class="screen active">
-    <h1 id="logoText">Toxic</h1>
-    <p>Приготовься к испытанию!</p>
+    <!-- Выбор уровня -->
+    <section id="levelScreen" class="screen">
+      <h2>Выбери уровень сложности</h2>
+      <div class="levelButtons">
+        <button type="button" class="uiBtn" data-level="easy">Лёгкий</button>
+        <button type="button" class="uiBtn" data-level="medium">Средний</button>
+        <button type="button" class="uiBtn" data-level="hard">Сложный</button>
+        <button type="button" class="uiBtn" data-level="insane">Безумие</button>
+      </div>
+    </section>
+
+    <!-- Экран подготовки -->
+    <section id="prepScreen" class="screen">
+      <p id="prepMessage">Готов? Уровень: <span id="selectedLevel">Лёгкий</span></p>
+      <button id="startGameBtn" class="uiBtn" type="button">Ладно, я попробую</button>
+      <button id="backToLevelsBtn" class="uiBtn uiBtn--secondary" type="button">Назад к уровням</button>
+    </section>
+
+    <!-- ИГРА -->
+    <main id="gameScreen" class="gameScreen" aria-label="Игра">
+      <header class="hud" aria-hidden="true">
+        <div id="scoreText" class="hud__score">Очки: 0</div>
+        <div id="levelText" class="hud__level">Уровень: Лёгкий</div>
+        <div id="timerText" class="hud__timer">Время: 0.00s</div>
+      </header>
+      <div id="playfield" class="playfield" aria-label="Игровое поле"></div>
+    </main>
+
+    <!-- РЕЗУЛЬТАТ -->
+    <section id="resultScreen" class="screen">
+      <h2 id="resultTitle">Результат</h2>
+      <div id="resultText" class="resultText"></div>
+      <div class="resultButtons">
+        <button id="retryBtn" class="uiBtn" type="button">Вернись и докажи</button>
+        <button id="chooseLevelBtn" class="uiBtn uiBtn--secondary" type="button">Выбрать уровень</button>
+      </div>
+    </section>
   </div>
 
-  <!-- Выбор уровня -->
-  <div id="levelScreen" class="screen">
-    <h2>Выбери уровень сложности</h2>
-    <div class="levelButtons">
-      <button data-level="easy">Лёгкий</button>
-      <button data-level="medium">Средний</button>
-      <button data-level="hard">Сложный</button>
-      <button data-level="insane">Безумие</button>
-    </div>
-  </div>
-
-  <!-- Экран подготовки -->
-  <div id="prepScreen" class="screen">
-    <p id="prepMessage">Готов? Уровень: <span id="selectedLevel">Лёгкий</span></p>
-    <button id="startGameBtn">Ладно, я попробую</button>
-  </div>
-
-  <!-- ИГРА -->
-  <div id="gameContainer" class="game">
-    <div id="scoreText">Очки: 0</div>
-    <div id="levelText">Уровень: Лёгкий</div>
-    <div id="timerText">Время: 0.00s</div>
-  </div>
-
-  <!-- РЕЗУЛЬТАТ -->
-  <div id="resultScreen" class="screen">
-    <h2 id="resultText"></h2>
-    <button id="retryBtn">Вернись и докажи</button>
-  </div>
-
+  <!-- Telegram WebApp SDK (без него Mini App не видит tg-объект) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="engine.js"></script>
 </body>
 </html>
