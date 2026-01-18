@@ -2,63 +2,135 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#141E30" />
-  <title>Toxic Game — Telegram Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Toxic</title>
+
   <link rel="stylesheet" href="main.css" />
+
+  <!-- Telegram Mini Apps SDK (safe in regular browser too) -->
+  <script src="https://telegram.org/js/telegram-web-app.js?59"></script>
 </head>
-<body>
-  <div id="app">
-    <!-- Загрузка -->
-    <section id="loadingScreen" class="screen is-active" aria-live="polite">
-      <h1 id="logoText">Toxic</h1>
-      <p>Приготовься к испытанию!</p>
-    </section>
+<body class="theme-toxic">
 
-    <!-- Выбор уровня -->
-    <section id="levelScreen" class="screen">
-      <h2>Выбери уровень сложности</h2>
-      <div class="levelButtons">
-        <button type="button" class="uiBtn" data-level="easy">Лёгкий</button>
-        <button type="button" class="uiBtn" data-level="medium">Средний</button>
-        <button type="button" class="uiBtn" data-level="hard">Сложный</button>
-        <button type="button" class="uiBtn" data-level="insane">Безумие</button>
+  <!-- LOADING -->
+  <div id="loadingScreen" class="screen active" aria-label="Загрузка">
+    <div class="panel">
+      <h1 id="logoText" class="logoGlitch" data-text="Toxic">Toxic</h1>
+      <p class="hint">Приготовься к испытанию!</p>
+
+      <div class="loadbar" aria-label="Прогресс загрузки">
+        <div id="loadbarFill" class="loadbar__fill"></div>
       </div>
-    </section>
-
-    <!-- Экран подготовки -->
-    <section id="prepScreen" class="screen">
-      <p id="prepMessage">Готов? Уровень: <span id="selectedLevel">Лёгкий</span></p>
-      <button id="startGameBtn" class="uiBtn" type="button">Ладно, я попробую</button>
-      <button id="backToLevelsBtn" class="uiBtn uiBtn--secondary" type="button">Назад к уровням</button>
-    </section>
-
-    <!-- ИГРА -->
-    <main id="gameScreen" class="gameScreen" aria-label="Игра">
-      <header class="hud" aria-hidden="true">
-        <div id="scoreText" class="hud__score">Очки: 0</div>
-        <div id="levelText" class="hud__level">Уровень: Лёгкий</div>
-        <div id="timerText" class="hud__timer">Время: 0.00s</div>
-      </header>
-      <!-- Всплывающие демотиваторы во время игры -->
-      <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
-      <div id="playfield" class="playfield" aria-label="Игровое поле"></div>
-    </main>
-
-    <!-- РЕЗУЛЬТАТ -->
-    <section id="resultScreen" class="screen">
-      <h2 id="resultTitle">Результат</h2>
-      <div id="resultText" class="resultText"></div>
-      <div class="resultButtons">
-        <button id="retryBtn" class="uiBtn" type="button">Вернись и докажи</button>
-        <button id="chooseLevelBtn" class="uiBtn uiBtn--secondary" type="button">Выбрать уровень</button>
-      </div>
-    </section>
+      <div id="loadingTip" class="hint">Разогреваем токсичность…</div>
+    </div>
   </div>
 
-  <!-- Telegram WebApp SDK (без него Mini App не видит tg-объект) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="demotivators.js"></script>
+  <!-- LEVEL SELECT -->
+  <div id="levelScreen" class="screen" aria-label="Выбор уровня">
+    <div class="panel">
+      <h2>Выбери уровень сложности</h2>
+      <div class="levelButtons">
+        <button type="button" data-level="easy">Лёгкий</button>
+        <button type="button" data-level="medium">Средний</button>
+        <button type="button" data-level="hard">Сложный</button>
+        <button type="button" data-level="insane">Безумие</button>
+      </div>
+
+      <div class="row">
+        <button id="openLeaderboardBtn" type="button" class="secondary">Лидерборд</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREP -->
+  <div id="prepScreen" class="screen" aria-label="Подготовка">
+    <div class="panel">
+      <p id="prepMessage">Готов? Уровень: <span id="selectedLevel">Лёгкий</span></p>
+      <div class="row">
+        <button id="startGameBtn" type="button">Ладно, я попробую</button>
+        <button id="backToLevelsBtn" type="button" class="secondary">Назад</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="screen" aria-label="Игра">
+    <div class="hud">
+      <div id="scoreText">Очки: 0</div>
+      <div id="levelText">Уровень: Лёгкий</div>
+      <div id="timerText">Время: 0.00s</div>
+    </div>
+
+    <div id="gameArea" class="game-area" aria-label="Игровое поле"></div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultScreen" class="screen" aria-label="Результат">
+    <div class="panel">
+      <h2 id="resultText"></h2>
+      <p id="demotivatorText" class="hint"></p>
+
+      <div class="row">
+        <button id="retryBtn" type="button">Ещё раз</button>
+        <button id="levelsBtn" type="button" class="secondary">Уровни</button>
+      </div>
+
+      <div class="row">
+        <button id="saveRunBtn" type="button">Сохранить в лидерборд</button>
+        <button id="openLeaderboardBtn2" type="button" class="secondary">Открыть лидерборд</button>
+      </div>
+
+      <p class="small hint">
+        Лидерборд сейчас локальный (на устройстве). Глобальный (общий) — можно добавить через бэкенд/API.
+      </p>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboardScreen" class="screen" aria-label="Лидерборд">
+    <div class="panel wide">
+      <div class="lbHeader">
+        <h2>Лидерборд</h2>
+        <button id="closeLeaderboardBtn" type="button" class="secondary">Закрыть</button>
+      </div>
+
+      <div class="lbControls">
+        <label class="lbLabel">
+          Уровень:
+          <select id="lbLevelSelect">
+            <option value="easy">Лёгкий</option>
+            <option value="medium">Средний</option>
+            <option value="hard">Сложный</option>
+            <option value="insane">Безумие</option>
+          </select>
+        </label>
+        <button id="clearLbBtn" type="button" class="danger">Очистить</button>
+      </div>
+
+      <div class="lbTableWrap">
+        <table class="lbTable" aria-label="Таблица лидеров">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Имя</th>
+              <th>Очки</th>
+              <th>Средн. реакция</th>
+              <th>Время раунда</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody id="lbBody"></tbody>
+        </table>
+      </div>
+
+      <p class="small hint">
+        Подсказка: в Telegram мы подхватим имя из профиля. В браузере можно задать его при сохранении.
+      </p>
+    </div>
+  </div>
+
   <script src="engine.js"></script>
 </body>
 </html>
