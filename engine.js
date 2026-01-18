@@ -57,10 +57,8 @@ function getPrepMessage(lvl){
 
 function startGame(){
   score=0; times=[]; startTime=performance.now();
-  scoreText.textContent="Очки: 0";
-  timerText.textContent="Время: 0.00s";
-  gameContainer.style.display="block";
-  gameContainer.innerHTML="";
+  scoreText.textContent="Очки: 0"; timerText.textContent="Время: 0.00s";
+  gameContainer.style.display="block"; gameContainer.innerHTML="";
   gameActive=true;
   spawnRealButton();
   document.addEventListener("click",handleMissClick);
@@ -80,23 +78,23 @@ function endGame(){
 
   const timerMsg=document.createElement("p");
   timerMsg.textContent=`Среднее время: ${avgTime.toFixed(2)}s`;
-  timerMsg.style.position="absolute"; timerMsg.style.top="20%"; timerMsg.style.left="50%";
-  timerMsg.style.transform="translateX(-50%)"; timerMsg.style.color="#fff"; timerMsg.style.fontSize="16px";
-  timerMsg.style.textAlign="center";
-  gameContainer.appendChild(timerMsg);
+  timerMsg.style.position="absolute"; timerMsg.style.top="20%";
+  timerMsg.style.left="50%"; timerMsg.style.transform="translateX(-50%)";
+  timerMsg.style.color="#fff"; timerMsg.style.fontSize="16px";
+  timerMsg.style.textAlign="center"; gameContainer.appendChild(timerMsg);
 
   const demotMsg=document.createElement("p");
   demotMsg.textContent=phrase.text;
-  demotMsg.style.position="absolute"; demotMsg.style.top="30%"; demotMsg.style.left="50%";
-  demotMsg.style.transform="translateX(-50%)"; demotMsg.style.color="#fff";
-  demotMsg.style.fontSize="18px"; demotMsg.style.fontWeight="700"; demotMsg.style.textAlign="center";
+  demotMsg.style.position="absolute"; demotMsg.style.top="30%";
+  demotMsg.style.left="50%"; demotMsg.style.transform="translateX(-50%)";
+  demotMsg.style.color="#fff"; demotMsg.style.fontSize="18px";
+  demotMsg.style.fontWeight="700"; demotMsg.style.textAlign="center";
   gameContainer.appendChild(demotMsg);
 
   const restartBtn=document.createElement("button");
-  restartBtn.textContent="Вернись и докажи";
-  restartBtn.classList.add("restart");
-  restartBtn.style.position="absolute"; restartBtn.style.top="50%"; restartBtn.style.left="50%";
-  restartBtn.style.transform="translate(-50%,-50%)";
+  restartBtn.textContent="Вернись и докажи"; restartBtn.classList.add("restart");
+  restartBtn.style.position="absolute"; restartBtn.style.top="50%";
+  restartBtn.style.left="50%"; restartBtn.style.transform="translate(-50%,-50%)";
   restartBtn.addEventListener("click",()=>{
     timerMsg.remove(); demotMsg.remove(); restartBtn.remove();
     startGame();
@@ -106,15 +104,14 @@ function endGame(){
 
 function handleMissClick(e){
   if(!gameActive) return;
-  if(!e.target.classList.contains("correct")&&!e.target.classList.contains("fake")){
+  if(realButton && !e.target.classList.contains("correct") && !e.target.classList.contains("fake")){
     endGame();
   }
 }
 
 function spawnRealButton(){
   if(realButton) realButton.remove();
-  realButton=document.createElement("button");
-  realButton.classList.add("correct");
+  realButton=document.createElement("button"); realButton.classList.add("correct");
   realButton.textContent="Нажми меня!";
   setButtonSizeAndPosition(realButton);
   realButton.addEventListener("click",e=>{
@@ -131,12 +128,10 @@ function spawnRealButton(){
 }
 
 function spawnFakeButtons(){
-  fakeButtons.forEach(btn=>btn.remove());
-  fakeButtons=[];
+  fakeButtons.forEach(btn=>btn.remove()); fakeButtons=[];
   const maxFakes={easy:2,medium:3,hard:4,insane:5}[level]||3;
   for(let i=0;i<maxFakes;i++){
-    const fake=document.createElement("button");
-    fake.classList.add("fake");
+    const fake=document.createElement("button"); fake.classList.add("fake");
     fake.textContent=["Ложная","Не та","Ха!","Ты хотел это?"][Math.floor(Math.random()*4)];
     setButtonSizeAndPosition(fake);
     fake.addEventListener("mouseenter",()=>{
