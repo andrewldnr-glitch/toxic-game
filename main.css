@@ -1,4 +1,3 @@
-/* --- Общие стили --- */
 body, html {
   margin: 0;
   padding: 0;
@@ -10,7 +9,7 @@ body, html {
   color: #fff;
 }
 
-/* --- Загрузочный экран --- */
+/* Загрузка */
 #loadingScreen {
   display: flex;
   flex-direction: column;
@@ -32,7 +31,7 @@ body, html {
   margin-bottom: 20px;
 }
 
-/* --- Экран выбора уровня --- */
+/* Выбор уровня */
 #levelScreen {
   display: none;
   flex-direction: column;
@@ -66,7 +65,7 @@ body, html {
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
 }
 
-/* --- Экран подготовки --- */
+/* Экран подготовки */
 #prepScreen {
   display: none;
   flex-direction: column;
@@ -98,7 +97,7 @@ body, html {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
-/* --- Игровой контейнер --- */
+/* Игровой контейнер */
 #gameContainer {
   display: none;
   position: relative;
@@ -109,7 +108,7 @@ body, html {
   backdrop-filter: blur(5px);
 }
 
-/* --- Таймер и счет --- */
+/* Таймер и счет */
 #scoreText, #timerText {
   position: absolute;
   top: 10px;
@@ -117,41 +116,34 @@ body, html {
   font-weight: 600;
 }
 
-#scoreText {
-  left: 20px;
-}
+#scoreText { left: 20px; }
+#timerText { right: 20px; }
 
-#timerText {
-  right: 20px;
-}
-
-/* --- Реальная кнопка --- */
+/* Реальная кнопка */
 button.correct {
   background: linear-gradient(135deg, #00c6ff, #0072ff);
   border: none;
   border-radius: 12px;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* --- Ложные кнопки --- */
+/* Ложные кнопки */
 button.fake {
   background: linear-gradient(135deg, #ff4e50, #f9d423);
   border: none;
   border-radius: 12px;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* --- Кнопка перезапуска --- */
+/* Кнопка перезапуска */
 button.restart {
   border: none;
   border-radius: 12px;
