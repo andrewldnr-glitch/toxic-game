@@ -10,6 +10,8 @@ const resultText = document.getElementById("resultText");
 const retryBtn = document.getElementById("retryBtn");
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
+const levelText = document.getElementById("levelText");
+const selectedLevelText = document.getElementById("selectedLevel");
 
 let realButton = null;
 let fakeButtons = [];
@@ -19,6 +21,34 @@ let gameActive = false;
 let startTime = 0;
 let timerInterval = null;
 let clickTimes = [];
+
+const levelConfig = {
+  easy: {
+    label: "Лёгкий",
+    fakeMax: 2,
+    moveChance: 0.4,
+    sizeScale: 1.1
+  },
+  medium: {
+    label: "Средний",
+    fakeMax: 3,
+    moveChance: 0.6,
+    sizeScale: 1
+  },
+  hard: {
+    label: "Сложный",
+    fakeMax: 4,
+    moveChance: 0.75,
+    sizeScale: 0.9
+  },
+  insane: {
+    label: "Безумие",
+    fakeMax: 5,
+    moveChance: 0.9,
+    sizeScale: 0.8
+  }
+};
+let selectedLevel = levelConfig.easy;
 
 // ===== Демотиваторы =====
 const demotivators = [
@@ -49,6 +79,10 @@ setTimeout(() => {
 // === LEVEL ===
 document.querySelectorAll("[data-level]").forEach(btn => {
   btn.addEventListener("click", () => {
+    const levelKey = btn.dataset.level;
+    selectedLevel = levelConfig[levelKey] || levelConfig.easy;
+    selectedLevelText.textContent = selectedLevel.label;
+    levelText.textContent = `Уровень: ${selectedLevel.label}`;
     levelScreen.style.display = "none";
     prepScreen.style.display = "flex";
   });
@@ -72,6 +106,7 @@ function startGame() {
   gameContainer.style.display = "block";
   scoreText.textContent = `Очки: ${score}`;
   timerText.textContent = `Время: 0.00s`;
+  levelText.textContent = `Уровень: ${selectedLevel.label}`;
 
   spawnRealButton();
   spawnFakeButtons();
@@ -88,7 +123,12 @@ function startGame() {
 function spawnRealButton() {
   realButton = document.createElement("button");
   realButton.textContent = "ЖМИ";
-  styleButton(realButton, 120, 60, 18);
+  styleButton(
+    realButton,
+    120 * selectedLevel.sizeScale,
+    60 * selectedLevel.sizeScale,
+    18 * selectedLevel.sizeScale
+  );
   moveButton(realButton);
 
   realButton.addEventListener("click", (e) => {
@@ -104,7 +144,7 @@ function spawnRealButton() {
 
     spawnFakeButtons();
 
-    if (Math.random() < 0.7) moveButton(realButton);
+    if (Math.random() < selectedLevel.moveChance) moveButton(realButton);
   });
 
   gameContainer.appendChild(realButton);
@@ -115,13 +155,13 @@ function spawnFakeButtons() {
   fakeButtons.forEach(b => b.remove());
   fakeButtons = [];
 
-  const count = Math.min(3, Math.floor(score / 2) + 1);
+  const count = Math.min(selectedLevel.fakeMax, Math.floor(score / 2) + 1);
   for (let i = 0; i < count; i++) {
     const btn = document.createElement("button");
     const texts = ["ЖМИ", "ЖМи", "ЖМИ!", "ЖМИ?"];
     btn.textContent = texts[Math.floor(Math.random() * texts.length)];
 
-    const sizeMod = 0.8 + Math.random() * 0.4;
+    const sizeMod = selectedLevel.sizeScale * (0.8 + Math.random() * 0.4);
     styleButton(btn, 120 * sizeMod, 60 * sizeMod, 18 * sizeMod);
 
     placeAwayFromReal(btn);
