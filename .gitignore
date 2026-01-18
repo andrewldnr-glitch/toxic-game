@@ -1,0 +1,6 @@
+# Optional
+.DS_Store
+
+# Vercel
+.vercel
+node_modules
