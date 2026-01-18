@@ -1,493 +1,646 @@
-/* Toxic Game — Telegram Mini App friendly build */
-console.log("ENGINE LOADED");
+(() => {
+  'use strict';
 
-const el = {
-  loadingScreen: document.getElementById("loadingScreen"),
-  levelScreen: document.getElementById("levelScreen"),
-  prepScreen: document.getElementById("prepScreen"),
-  gameScreen: document.getElementById("gameScreen"),
-  toast: document.getElementById("toast"),
-  playfield: document.getElementById("playfield"),
-  resultScreen: document.getElementById("resultScreen"),
+  // ===== DOM helpers =====
+  const $ = (id) => document.getElementById(id);
 
-  startGameBtn: document.getElementById("startGameBtn"),
-  backToLevelsBtn: document.getElementById("backToLevelsBtn"),
-  retryBtn: document.getElementById("retryBtn"),
-  chooseLevelBtn: document.getElementById("chooseLevelBtn"),
+  // Screens
+  const loadingScreen = $('loadingScreen');
+  const levelScreen = $('levelScreen');
+  const prepScreen = $('prepScreen');
+  const gameScreen = $('gameScreen');
+  const resultScreen = $('resultScreen');
+  const leaderboardScreen = $('leaderboardScreen');
 
-  scoreText: document.getElementById("scoreText"),
-  timerText: document.getElementById("timerText"),
-  levelText: document.getElementById("levelText"),
-  selectedLevelText: document.getElementById("selectedLevel"),
-  resultText: document.getElementById("resultText"),
-};
+  // UI
+  const startGameBtn = $('startGameBtn');
+  const backToLevelsBtn = $('backToLevelsBtn');
+  const retryBtn = $('retryBtn');
+  const levelsBtn = $('levelsBtn');
+  const saveRunBtn = $('saveRunBtn');
 
-// ===== Telegram integration (optional) =====
-const tg = window.Telegram?.WebApp;
+  const openLeaderboardBtn = $('openLeaderboardBtn');
+  const openLeaderboardBtn2 = $('openLeaderboardBtn2');
+  const closeLeaderboardBtn = $('closeLeaderboardBtn');
+  const clearLbBtn = $('clearLbBtn');
+  const lbLevelSelect = $('lbLevelSelect');
+  const lbBody = $('lbBody');
 
-function applyTelegramTheme() {
-  if (!tg) return;
+  const scoreText = $('scoreText');
+  const timerText = $('timerText');
+  const levelText = $('levelText');
+  const selectedLevelText = $('selectedLevel');
 
-  const tp = tg.themeParams || {};
-  // Это не полный набор, но достаточно, чтобы подстроиться под тему.
-  if (tp.bg_color) document.documentElement.style.setProperty("--tg-bg", tp.bg_color);
-  if (tp.text_color) document.documentElement.style.setProperty("--tg-text", tp.text_color);
-  if (tp.hint_color) document.documentElement.style.setProperty("--tg-hint", tp.hint_color);
+  const gameArea = $('gameArea');
+  const toast = $('toast');
 
-  // Мягко подстраиваем базовый градиент под фон Telegram, если возможно.
-  if (tp.bg_color) document.documentElement.style.setProperty("--bg1", tp.bg_color);
-}
+  const resultText = $('resultText');
+  const demotivatorText = $('demotivatorText');
 
-function haptic(type = "light") {
-  // type: 'light' | 'medium' | 'heavy'
-  try {
-    tg?.HapticFeedback?.impactOccurred?.(type);
-  } catch (_) {
-    // ignore
-  }
-}
+  const loadbarFill = $('loadbarFill');
+  const loadingTip = $('loadingTip');
 
-let currentView = "loading";
-function setView(view) {
-  const allScreens = [el.loadingScreen, el.levelScreen, el.prepScreen, el.resultScreen];
-  allScreens.forEach(s => s.classList.remove("is-active"));
-  el.gameScreen.classList.remove("is-active");
+  // ===== Telegram =====
+  const tg = window.Telegram?.WebApp;
 
-  if (view === "game") el.gameScreen.classList.add("is-active");
-  else {
-    const map = {
-      loading: el.loadingScreen,
-      level: el.levelScreen,
-      prep: el.prepScreen,
-      result: el.resultScreen,
-    };
-    map[view]?.classList.add("is-active");
+  function safeTg(fn) { try { fn(); } catch (_) {} }
+
+  function applySafeAreaFromTg() {
+    if (!tg) return;
+    const inset = tg.contentSafeAreaInset || tg.safeAreaInset;
+    if (!inset) return;
+    const root = document.documentElement;
+    root.style.setProperty('--tg-safe-area-inset-top', `${inset.top || 0}px`);
+    root.style.setProperty('--tg-safe-area-inset-right', `${inset.right || 0}px`);
+    root.style.setProperty('--tg-safe-area-inset-bottom', `${inset.bottom || 0}px`);
+    root.style.setProperty('--tg-safe-area-inset-left', `${inset.left || 0}px`);
   }
 
-  currentView = view;
-  syncTelegramBackButton();
-}
-
-function syncTelegramBackButton() {
-  if (!tg?.BackButton) return;
-  if (currentView === "game" || currentView === "prep" || currentView === "result") tg.BackButton.show();
-  else tg.BackButton.hide();
-}
-
-if (tg) {
-  tg.ready();
-  tg.expand();
-  applyTelegramTheme();
-
-  // В некоторых версиях доступно: tg.onEvent('themeChanged', ...)
-  try {
-    tg.onEvent?.("themeChanged", applyTelegramTheme);
-  } catch (_) {}
-
-  try {
-    tg.BackButton.onClick(() => {
-      if (currentView === "game") {
-        stopGame({ showResult: false });
-        setView("level");
-        return;
-      }
-      if (currentView === "prep" || currentView === "result") {
-        setView("level");
-        return;
-      }
-      // если мы на уровне/загрузке — просто закрываем мини-апп
-      tg.close();
-    });
-  } catch (_) {}
-}
-
-// ===== Game config =====
-const levelConfig = {
-  easy:   { label: "Лёгкий",   fakeMax: 2, moveChance: 0.40, sizeScale: 1.10 },
-  medium: { label: "Средний", fakeMax: 3, moveChance: 0.60, sizeScale: 1.00 },
-  hard:   { label: "Сложный", fakeMax: 4, moveChance: 0.75, sizeScale: 0.90 },
-  insane: { label: "Безумие", fakeMax: 5, moveChance: 0.90, sizeScale: 0.80 },
-};
-
-let selectedLevelKey = "easy";
-let selectedLevel = levelConfig[selectedLevelKey];
-
-// ===== State =====
-let gameActive = false;
-let realButton = null;
-let fakeButtons = [];
-let score = 0;
-
-let gameStartTime = 0;
-let lastClickTime = 0;
-let reactionTimesMs = [];
-let timerInterval = null;
-
-// ===== Demotivators =====
-// Подхватываем библиотеку из demotivators.js (1500 фраз)
-const DM = window.TOXIC_DEMOTIVATORS;
-
-// Фолбэк, если библиотека не загрузилась (чтобы игра не падала)
-const DM_FALLBACK = {
-  tiers: [
-    { during: ["Мимо. Вселенная записала."], end: ["Мимо. Попробуй ещё раз."] },
-    { during: ["Окей. Дышим."], end: ["Неплохо. Почти."] },
-    { during: ["Уже похоже на игру."], end: ["Есть прогресс."] },
-    { during: ["Вот это скорость."], end: ["Кнопка нервничает."] },
-    { during: ["Я почти горжусь."], end: ["Солидно." ] },
-  ],
-};
-
-const dmLib = (DM && DM.tiers && DM.tiers.length) ? DM : DM_FALLBACK;
-
-let toastTimer = null;
-function showToast(message) {
-  if (!el.toast) return;
-  el.toast.textContent = message;
-  el.toast.classList.add("is-show");
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.toast?.classList.remove("is-show");
-  }, 1350);
-}
-
-function pickRandom(arr) {
-  if (!arr || !arr.length) return "";
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function getSofteningTier({ score, totalSeconds }) {
-  // Прогресс: очки + маленький бонус за то, что просто живёшь
-  const p = score + totalSeconds * 0.25;
-
-  // Пороги под уровень (чтобы на сложном не зависать в самом жёстком тире навсегда)
-  const thresholds = {
-    easy:   [4, 10, 18, 28],
-    medium: [3,  8, 14, 22],
-    hard:   [3,  7, 12, 18],
-    insane: [2,  6, 10, 15],
-  }[selectedLevelKey] || [4, 10, 18, 28];
-
-  if (p < thresholds[0]) return 0;
-  if (p < thresholds[1]) return 1;
-  if (p < thresholds[2]) return 2;
-  if (p < thresholds[3]) return 3;
-  return 4;
-}
-
-function getDemotivatorLine(type, { score, totalSeconds }) {
-  const tier = getSofteningTier({ score, totalSeconds });
-  const pool = dmLib.tiers[tier] || dmLib.tiers[0];
-  const list = (type === "end") ? pool.end : pool.during;
-  return pickRandom(list) || pickRandom(dmLib.tiers[0]?.end) || "";
-}
-
-// ===== UI flow =====
-setView("loading");
-setTimeout(() => setView("level"), 1200);
-
-// выбор уровня
-document.querySelectorAll("[data-level]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const key = btn.dataset.level;
-    if (!levelConfig[key]) return;
-
-    selectedLevelKey = key;
-    selectedLevel = levelConfig[selectedLevelKey];
-
-    el.selectedLevelText.textContent = selectedLevel.label;
-    el.levelText.textContent = `Уровень: ${selectedLevel.label}`;
-
-    setView("prep");
-  });
-});
-
-el.backToLevelsBtn.addEventListener("click", () => setView("level"));
-
-el.startGameBtn.addEventListener("click", () => {
-  startGame();
-});
-
-el.retryBtn.addEventListener("click", () => {
-  startGame();
-});
-
-el.chooseLevelBtn.addEventListener("click", () => {
-  stopGame({ showResult: false });
-  setView("level");
-});
-
-// промах — клик/тап по пустому месту
-el.playfield.addEventListener("pointerdown", (e) => {
-  if (!gameActive) return;
-  if (e.target !== el.playfield) return;
-  endGame();
-});
-
-// ===== Game =====
-function startGame() {
-  cleanupPlayfield();
-
-  // убрать старый тост (если остался)
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-    toastTimer = null;
+  function initTelegram() {
+    if (!tg) return;
+    safeTg(() => tg.ready());
+    safeTg(() => tg.expand());
+    safeTg(() => tg.disableVerticalSwipes?.());
+    applySafeAreaFromTg();
+    safeTg(() => tg.onEvent?.('viewportChanged', () => clampButtonsToBounds()));
+    safeTg(() => tg.onEvent?.('safeAreaChanged', applySafeAreaFromTg));
+    safeTg(() => tg.onEvent?.('contentSafeAreaChanged', applySafeAreaFromTg));
   }
-  if (el.toast) {
-    el.toast.classList.remove("is-show");
-    el.toast.textContent = "";
+  initTelegram();
+
+  // ===== Screens manager =====
+  const screens = [loadingScreen, levelScreen, prepScreen, gameScreen, resultScreen, leaderboardScreen].filter(Boolean);
+
+  function showScreen(screenEl) {
+    screens.forEach(el => el.classList.toggle('active', el === screenEl));
   }
 
-  score = 0;
-  reactionTimesMs = [];
-  gameActive = true;
-
-  gameStartTime = performance.now();
-  lastClickTime = gameStartTime;
-
-  el.scoreText.textContent = `Очки: ${score}`;
-  el.timerText.textContent = `Время: 0.00s`;
-  el.levelText.textContent = `Уровень: ${selectedLevel.label}`;
-
-  setView("game");
-
-  spawnRealButton();
-  spawnFakeButtons();
-  startTimer();
-}
-
-function stopGame({ showResult } = { showResult: false }) {
-  gameActive = false;
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-  cleanupPlayfield();
-  if (!showResult) {
-    // просто стоп без экрана результатов
-    // (вид переключается снаружи)
-  }
-}
-
-function startTimer() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (!gameActive) return;
-    const elapsed = (performance.now() - gameStartTime) / 1000;
-    el.timerText.textContent = `Время: ${elapsed.toFixed(2)}s`;
-  }, 33);
-}
-
-function cleanupPlayfield() {
-  // remove all children (and old listeners)
-  el.playfield.innerHTML = "";
-  realButton = null;
-  fakeButtons = [];
-}
-
-function spawnRealButton() {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "btn btn--real";
-  btn.textContent = "ЖМИ";
-
-  const w = 120 * selectedLevel.sizeScale;
-  const h = 60 * selectedLevel.sizeScale;
-  const fz = 18 * selectedLevel.sizeScale;
-  styleButton(btn, w, h, fz);
-
-  el.playfield.appendChild(btn);
-  moveButton(btn);
-
-  const onPress = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!gameActive) return;
-
-    score++;
-    const now = performance.now();
-    reactionTimesMs.push(now - lastClickTime);
-    lastClickTime = now;
-
-    el.scoreText.textContent = `Очки: ${score}`;
-    btn.textContent = `ЖМИ (${score})`;
-
-    // Демотиватор во время игры (реже, чтобы не раздражал)
-    const totalSeconds = (now - gameStartTime) / 1000;
-    if (score === 1 || score % 3 === 0 || Math.random() < 0.22) {
-      const line = getDemotivatorLine("during", { score, totalSeconds });
-      if (line) showToast(line);
-    }
-
-    haptic("light");
-
-    spawnFakeButtons();
-    if (Math.random() < selectedLevel.moveChance) moveButton(btn);
+  // ===== Level config =====
+  const levelConfig = {
+    easy:   { label: 'Лёгкий',  fakeMax: 2, moveChance: 0.40, sizeScale: 1.10 },
+    medium: { label: 'Средний', fakeMax: 3, moveChance: 0.60, sizeScale: 1.00 },
+    hard:   { label: 'Сложный', fakeMax: 4, moveChance: 0.75, sizeScale: 0.90 },
+    insane: { label: 'Безумие', fakeMax: 5, moveChance: 0.90, sizeScale: 0.80 },
   };
 
-  btn.addEventListener("pointerdown", onPress);
-  btn.addEventListener("click", onPress);
+  let selectedLevelKey = 'easy';
+  let selectedLevel = levelConfig[selectedLevelKey];
 
-  realButton = btn;
-}
+  // ===== Demotivators (small starter set) =====
+  // Ты можешь заменить на демотиваторы_1500 и/или подключить отдельный файл.
+  const demotivators = [
+    'Неплохо. Для человека.',
+    'Мимо. Как по жизни.',
+    'Ты нажал не туда. Впрочем, это твоя специализация.',
+    'Скорость есть. Точности — как обычно.',
+    'Ого. Похоже, ты случайно стараешься.',
+    'Ладно… это было почти красиво.',
+    'Твои пальцы сегодня опасны. Чуть-чуть.',
+  ];
 
-function spawnFakeButtons() {
-  // remove old fakes
-  fakeButtons.forEach(b => b.remove());
-  fakeButtons = [];
+  // Чем больше score/время — тем мягче
+  function demotivatorIndex(score, totalSec) {
+    const p = score + totalSec * 0.25;
+    if (p < 4) return 2;
+    if (p < 10) return 3;
+    if (p < 18) return 1;
+    if (p < 28) return 0;
+    return 5;
+  }
 
-  const count = Math.min(selectedLevel.fakeMax, Math.floor(score / 2) + 1);
-  const texts = ["ЖМИ", "ЖМи", "ЖМИ!", "ЖМИ?"];
+  function pickDemotivator(score, totalSec) {
+    const idx = demotivatorIndex(score, totalSec);
+    return demotivators[Math.max(0, Math.min(demotivators.length - 1, idx))] || '…';
+  }
 
-  for (let i = 0; i < count; i++) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "btn btn--fake";
-    btn.textContent = texts[Math.floor(Math.random() * texts.length)];
+  // ===== Game state =====
+  let realButton = null;
+  let fakeButtons = [];
+  let score = 0;
+  let gameActive = false;
 
-    const sizeMod = selectedLevel.sizeScale * (0.80 + Math.random() * 0.40);
-    const w = 120 * sizeMod;
-    const h = 60 * sizeMod;
-    const fz = 18 * sizeMod;
-    styleButton(btn, w, h, fz);
+  let gameStartTime = 0;
+  let lastHitTime = 0;
+  let timerInterval = null;
+  let reactionTimes = []; // ms
 
-    el.playfield.appendChild(btn);
-    placeAwayFromReal(btn);
+  let lastRun = null; // for saving to leaderboard
 
-    const onFail = (e) => {
-      e.preventDefault();
+  // ===== Loading / preloading =====
+  function setProgress(p) {
+    const clamped = Math.max(0, Math.min(1, p));
+    if (loadbarFill) loadbarFill.style.width = `${Math.round(clamped * 100)}%`;
+  }
+  function setTip(t) { if (loadingTip) loadingTip.textContent = t; }
+
+  function preloadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(src);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function preloadAll() {
+    const assets = [
+      { type: 'img', src: 'assets/splash.webp' },
+    ];
+
+    setTip('Разогреваем токсичность…');
+    setProgress(0);
+
+    let done = 0;
+    for (const a of assets) {
+      try {
+        if (a.type === 'img') await preloadImage(a.src);
+      } catch (e) {
+        // если картинки нет — просто продолжаем
+        console.warn('Asset failed:', a.src, e);
+      }
+      done++;
+      setProgress(done / assets.length);
+    }
+    setTip('Почти готово…');
+  }
+
+  (async () => {
+    showScreen(loadingScreen);
+    await preloadAll();
+    await new Promise(r => setTimeout(r, 350));
+    showScreen(levelScreen);
+  })();
+
+  // ===== Level selection =====
+  document.querySelectorAll('[data-level]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-level') || 'easy';
+      selectedLevelKey = levelConfig[key] ? key : 'easy';
+      selectedLevel = levelConfig[selectedLevelKey];
+
+      selectedLevelText.textContent = selectedLevel.label;
+      levelText.textContent = `Уровень: ${selectedLevel.label}`;
+      showScreen(prepScreen);
+    });
+  });
+
+  startGameBtn?.addEventListener('click', startGame);
+  backToLevelsBtn?.addEventListener('click', () => showScreen(levelScreen));
+  retryBtn?.addEventListener('click', startGame);
+  levelsBtn?.addEventListener('click', () => showScreen(levelScreen));
+
+  openLeaderboardBtn?.addEventListener('click', () => openLeaderboard(selectedLevelKey));
+  openLeaderboardBtn2?.addEventListener('click', () => openLeaderboard(selectedLevelKey));
+  closeLeaderboardBtn?.addEventListener('click', () => {
+    // возвращаемся туда, откуда логично
+    if (resultScreen.classList.contains('active')) showScreen(resultScreen);
+    else showScreen(levelScreen);
+  });
+
+  lbLevelSelect?.addEventListener('change', () => renderLeaderboard(lbLevelSelect.value));
+  clearLbBtn?.addEventListener('click', () => {
+    const key = lbKey(lbLevelSelect.value);
+    localStorage.removeItem(key);
+    renderLeaderboard(lbLevelSelect.value);
+  });
+
+  saveRunBtn?.addEventListener('click', async () => {
+    if (!lastRun) return;
+
+    // Try global save first (Telegram only). Fallback to local.
+    const posted = await postScoreGlobal(lastRun);
+    if (posted.ok) {
+      showToast('Отправлено в глобальный лидерборд. Токсично.', 1200);
+    } else {
+      saveToLeaderboard(lastRun);
+    }
+    openLeaderboard(lastRun.levelKey);
+  });
+
+  // ===== Game logic =====
+  gameArea.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Miss click only on playfield
+  gameArea.addEventListener('click', () => {
+    if (!gameActive) return;
+    endGame('miss');
+  });
+
+  window.addEventListener('resize', () => clampButtonsToBounds());
+
+  function startGame() {
+    score = 0;
+    reactionTimes = [];
+    lastRun = null;
+    gameActive = true;
+
+    showScreen(gameScreen);
+
+    scoreText.textContent = 'Очки: 0';
+    timerText.textContent = 'Время: 0.00s';
+    levelText.textContent = `Уровень: ${selectedLevel.label}`;
+
+    clearBoard();
+
+    gameStartTime = performance.now();
+    lastHitTime = gameStartTime;
+
+    requestAnimationFrame(() => {
+      spawnRealButton();
+      spawnFakeButtons();
+      startTimer();
+      showToast('Не промахнись. Я верю в твою неудачу.', 1200);
+    });
+  }
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const elapsed = (performance.now() - gameStartTime) / 1000;
+      timerText.textContent = `Время: ${elapsed.toFixed(2)}s`;
+    }, 25);
+  }
+
+  function clearBoard() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    gameArea.innerHTML = '';
+    realButton = null;
+    fakeButtons = [];
+  }
+
+  function spawnRealButton() {
+    realButton = document.createElement('button');
+    realButton.type = 'button';
+    realButton.className = 'game-btn correct';
+    realButton.textContent = 'ЖМИ';
+
+    applyButtonSize(
+      realButton,
+      120 * selectedLevel.sizeScale,
+      60 * selectedLevel.sizeScale,
+      18 * selectedLevel.sizeScale
+    );
+
+    moveButtonRandom(realButton);
+
+    realButton.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!gameActive) return;
-      haptic("heavy");
-      endGame();
+
+      const now = performance.now();
+      reactionTimes.push(now - lastHitTime);
+      lastHitTime = now;
+
+      score += 1;
+      scoreText.textContent = `Очки: ${score}`;
+      realButton.textContent = `ЖМИ (${score})`;
+
+      safeTg(() => tg?.HapticFeedback?.impactOccurred?.('light'));
+
+      // during demotivators, not too often
+      if (score === 1 || score % 3 === 0 || Math.random() < 0.22) {
+        const totalSec = (performance.now() - gameStartTime) / 1000;
+        showToast(pickDemotivator(score, totalSec), 1100);
+      }
+
+      spawnFakeButtons();
+      if (Math.random() < selectedLevel.moveChance) moveButtonRandom(realButton);
+    });
+
+    gameArea.appendChild(realButton);
+  }
+
+  function spawnFakeButtons() {
+    fakeButtons.forEach(b => b.remove());
+    fakeButtons = [];
+
+    const count = Math.min(selectedLevel.fakeMax, Math.floor(score / 2) + 1);
+    const texts = ['ЖМИ', 'ЖМи', 'ЖМИ!', 'ЖМИ?'];
+
+    for (let i = 0; i < count; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'game-btn fake';
+      btn.textContent = texts[Math.floor(Math.random() * texts.length)];
+
+      const sizeMod = selectedLevel.sizeScale * (0.8 + Math.random() * 0.4);
+      applyButtonSize(btn, 120 * sizeMod, 60 * sizeMod, 18 * sizeMod);
+
+      placeAwayFromReal(btn, 14);
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!gameActive) return;
+        endGame('fake');
+      });
+
+      gameArea.appendChild(btn);
+      fakeButtons.push(btn);
+    }
+  }
+
+  function applyButtonSize(btn, w, h, fz) {
+    btn.style.width = `${Math.round(w)}px`;
+    btn.style.height = `${Math.round(h)}px`;
+    btn.style.fontSize = `${Math.round(fz)}px`;
+  }
+
+  function moveButtonRandom(btn) {
+    const w = btn.offsetWidth || (parseFloat(btn.style.width) || 120);
+    const h = btn.offsetHeight || (parseFloat(btn.style.height) || 60);
+
+    const maxX = Math.max(0, gameArea.clientWidth - w);
+    const maxY = Math.max(0, gameArea.clientHeight - h);
+
+    btn.style.left = `${Math.random() * maxX}px`;
+    btn.style.top = `${Math.random() * maxY}px`;
+  }
+
+  function placeAwayFromReal(btn, marginPx = 0) {
+    const w = parseFloat(btn.style.width) || 120;
+    const h = parseFloat(btn.style.height) || 60;
+
+    const maxX = Math.max(0, gameArea.clientWidth - w);
+    const maxY = Math.max(0, gameArea.clientHeight - h);
+
+    const realBox = realButton ? getBox(realButton) : null;
+    const inflated = realBox
+      ? { left: realBox.left - marginPx, top: realBox.top - marginPx, right: realBox.right + marginPx, bottom: realBox.bottom + marginPx }
+      : null;
+
+    let x = 0, y = 0;
+    let tries = 0;
+
+    do {
+      x = Math.random() * maxX;
+      y = Math.random() * maxY;
+      tries++;
+      if (!inflated) break;
+    } while (boxesOverlap({ left: x, top: y, right: x + w, bottom: y + h }, inflated) && tries < 60);
+
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+  }
+
+  function getBox(el) {
+    const left = el.offsetLeft;
+    const top = el.offsetTop;
+    return { left, top, right: left + el.offsetWidth, bottom: top + el.offsetHeight };
+  }
+
+  function boxesOverlap(a, b) {
+    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+  }
+
+  function clampButtonsToBounds() {
+    if (!gameActive) return;
+
+    const clampEl = (el) => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+
+      const maxX = Math.max(0, gameArea.clientWidth - w);
+      const maxY = Math.max(0, gameArea.clientHeight - h);
+
+      const curX = parseFloat(el.style.left) || 0;
+      const curY = parseFloat(el.style.top) || 0;
+
+      el.style.left = `${Math.min(maxX, Math.max(0, curX))}px`;
+      el.style.top = `${Math.min(maxY, Math.max(0, curY))}px`;
     };
 
-    btn.addEventListener("pointerdown", onFail);
-    btn.addEventListener("click", onFail);
-
-    fakeButtons.push(btn);
-  }
-}
-
-function endGame() {
-  if (!gameActive) return;
-  gameActive = false;
-
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+    if (realButton) clampEl(realButton);
+    fakeButtons.forEach(clampEl);
   }
 
-  const totalSeconds = (performance.now() - gameStartTime) / 1000;
+  function endGame(reason) {
+    gameActive = false;
 
-  const avgSeconds = reactionTimesMs.length
-    ? (reactionTimesMs.reduce((a, b) => a + b, 0) / reactionTimesMs.length) / 1000
-    : 0;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
-  const demotivator = getDemotivatorLine("end", { score, totalSeconds });
+    const totalSec = (performance.now() - gameStartTime) / 1000;
+    const avgSec = reactionTimes.length
+      ? (reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) / 1000
+      : 0;
 
-  // best score per level
-  const bestKey = "toxic_best_v1";
-  const bestByLevel = safeJsonParse(localStorage.getItem(bestKey)) || {};
-  const prev = bestByLevel[selectedLevelKey];
+    safeTg(() => tg?.HapticFeedback?.impactOccurred?.('heavy'));
 
-  const current = {
-    score,
-    avg: avgSeconds,
-    total: totalSeconds,
-    at: Date.now(),
-  };
+    const reasonText = (reason === 'fake') ? 'Ты нажал на фейк 😈' : 'Мимо 😈';
+    resultText.innerHTML =
+      `${reasonText}<br><br>` +
+      `Очков: <b>${score}</b><br>` +
+      `Среднее время реакции: <b>${avgSec.toFixed(2)}s</b><br>` +
+      `Время в раунде: <b>${totalSec.toFixed(2)}s</b>`;
 
-  const isBetter = !prev
-    || (current.score > prev.score)
-    || (current.score === prev.score && current.avg < prev.avg);
+    demotivatorText.textContent = pickDemotivator(score, totalSec);
 
-  if (isBetter) bestByLevel[selectedLevelKey] = current;
-  try { localStorage.setItem(bestKey, JSON.stringify(bestByLevel)); } catch (_) {}
+    lastRun = {
+      levelKey: selectedLevelKey,
+      levelLabel: selectedLevel.label,
+      score,
+      avgSec,
+      totalSec,
+      at: Date.now(),
+      name: guessPlayerName(),
+    };
 
-  cleanupPlayfield();
-
-  const best = bestByLevel[selectedLevelKey];
-  const bestLine = best
-    ? `<br><br><small style="opacity:.85">Лучшее на этом уровне: <b>${best.score}</b> (ср. реакция <b>${Number(best.avg).toFixed(2)}s</b>)</small>`
-    : "";
-
-  el.resultText.innerHTML =
-    `Очков: <b>${score}</b>`
-    + `<br>Среднее время реакции: <b>${avgSeconds.toFixed(2)}s</b>`
-    + `<br>Время в игре: <b>${totalSeconds.toFixed(2)}s</b>`
-    + `<br><i>${demotivator}</i>`
-    + bestLine;
-
-  setView("result");
-}
-
-// ===== Helpers =====
-function styleButton(btn, w, h, fz) {
-  btn.style.width = `${w}px`;
-  btn.style.height = `${h}px`;
-  btn.style.fontSize = `${fz}px`;
-}
-
-function moveButton(btn) {
-  const rect = el.playfield.getBoundingClientRect();
-  const w = parseFloat(btn.style.width) || 120;
-  const h = parseFloat(btn.style.height) || 60;
-
-  const maxX = Math.max(0, rect.width - w);
-  const maxY = Math.max(0, rect.height - h);
-
-  btn.style.left = `${Math.random() * maxX}px`;
-  btn.style.top = `${Math.random() * maxY}px`;
-}
-
-function placeAwayFromReal(btn) {
-  if (!realButton) {
-    moveButton(btn);
-    return;
+    clearBoard();
+    showScreen(resultScreen);
   }
 
-  const rect = el.playfield.getBoundingClientRect();
-  const w = parseFloat(btn.style.width) || 120;
-  const h = parseFloat(btn.style.height) || 60;
+  // ===== Toast =====
+  let toastTimer = null;
+  function showToast(text, ms = 1000) {
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+  }
 
-  // координаты реальной кнопки относительно playfield
-  const realX = realButton.offsetLeft;
-  const realY = realButton.offsetTop;
-  const realW = parseFloat(realButton.style.width) || realButton.offsetWidth;
-  const realH = parseFloat(realButton.style.height) || realButton.offsetHeight;
 
-  const maxX = Math.max(0, rect.width - w);
-  const maxY = Math.max(0, rect.height - h);
+  // ===== Global Leaderboard (Vercel API) =====
+  async function fetchGlobalLeaderboard(levelKey) {
+    try {
+      const r = await fetch(`/api/leaderboard?level=${encodeURIComponent(levelKey)}`);
+      if (!r.ok) throw new Error('bad response');
+      const data = await r.json();
+      return Array.isArray(data.top) ? data.top : [];
+    } catch (e) {
+      return null; // means unavailable
+    }
+  }
 
-  let tries = 0;
-  let x = 0;
-  let y = 0;
+  async function postScoreGlobal(run) {
+    if (!tg?.initData) return { ok: false, reason: 'no_tg' };
+    try {
+      const r = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          level: run.levelKey,
+          score: run.score,
+          avgSec: run.avgSec,
+          totalSec: run.totalSec,
+          initData: tg.initData,
+        }),
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        return { ok: false, reason: `http_${r.status}`, detail: t };
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, reason: 'network' };
+    }
+  }
 
-  const padding = 10; // небольшой зазор
+  // ===== Leaderboard (local) =====
+  function lbKey(levelKey) {
+    return `toxic_leaderboard_${levelKey}`;
+  }
 
-  do {
-    x = Math.random() * maxX;
-    y = Math.random() * maxY;
-    tries++;
-  } while (
-    boxesOverlap(x, y, w, h, realX - padding, realY - padding, realW + padding * 2, realH + padding * 2)
-    && tries < 50
-  );
+  function readLeaderboard(levelKey) {
+    const raw = localStorage.getItem(lbKey(levelKey));
+    if (!raw) return [];
+    try {
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  }
 
-  btn.style.left = `${x}px`;
-  btn.style.top = `${y}px`;
-}
+  function writeLeaderboard(levelKey, arr) {
+    localStorage.setItem(lbKey(levelKey), JSON.stringify(arr));
+  }
 
-function boxesOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-  return !(
-    ax + aw < bx ||
-    ax > bx + bw ||
-    ay + ah < by ||
-    ay > by + bh
-  );
-}
+  // Sorting: score desc, avgSec asc, totalSec desc (longer run can be interesting)
+  function sortRuns(a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.avgSec !== b.avgSec) return a.avgSec - b.avgSec;
+    return b.totalSec - a.totalSec;
+  }
 
-function safeJsonParse(str) {
-  try { return JSON.parse(str); } catch (_) { return null; }
-}
+  function saveToLeaderboard(run) {
+    const levelKey = run.levelKey;
+    const arr = readLeaderboard(levelKey);
+
+    arr.push({
+      name: run.name || 'Игрок',
+      score: run.score,
+      avgSec: run.avgSec,
+      totalSec: run.totalSec,
+      at: run.at,
+    });
+
+    arr.sort(sortRuns);
+
+    // keep top 50
+    const top = arr.slice(0, 50);
+    writeLeaderboard(levelKey, top);
+
+    showToast('Сохранено. Тебя будут помнить. Недолго.', 1200);
+  }
+
+  function openLeaderboard(levelKey) {
+    if (lbLevelSelect) lbLevelSelect.value = levelKey || 'easy';
+    renderLeaderboard(lbLevelSelect?.value || 'easy');
+    showScreen(leaderboardScreen);
+  }
+
+  function renderLeaderboard(levelKey) {
+    if (!lbBody) return;
+
+    lbBody.innerHTML = '';
+
+    // Prefer global leaderboard
+    fetchGlobalLeaderboard(levelKey).then((globalTop) => {
+      if (globalTop && globalTop.length) {
+        globalTop.forEach((r, i) => {
+          const dt = new Date(r.created_at);
+          const date = `${dt.toLocaleDateString('ru-RU')} ${dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+          const name = r.username ? `@${r.username}` : (r.first_name || 'Игрок');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${escapeHtml(name)}</td>
+            <td><b>${r.score}</b></td>
+            <td>${Number(r.avg_sec).toFixed(2)}s</td>
+            <td>${Number(r.total_sec).toFixed(2)}s</td>
+            <td>${date}</td>
+          `;
+          lbBody.appendChild(tr);
+        });
+        return;
+      }
+
+      // Fallback: local leaderboard
+      const arr = readLeaderboard(levelKey).slice(0, 10);
+      if (arr.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" style="opacity:.7">Пока пусто. Отличный шанс стать первым токсиком.</td>`;
+        lbBody.appendChild(tr);
+        return;
+      }
+
+      arr.forEach((r, i) => {
+        const dt = new Date(r.at);
+        const date = `${dt.toLocaleDateString('ru-RU')} ${dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${escapeHtml(r.name || 'Игрок')}</td>
+          <td><b>${r.score}</b></td>
+          <td>${Number(r.avgSec).toFixed(2)}s</td>
+          <td>${Number(r.totalSec).toFixed(2)}s</td>
+          <td>${date}</td>
+        `;
+        lbBody.appendChild(tr);
+      });
+    });
+  }
+
+    arr.forEach((r, i) => {
+      const dt = new Date(r.at);
+      const date = `${dt.toLocaleDateString('ru-RU')} ${dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${escapeHtml(r.name || 'Игрок')}</td>
+        <td><b>${r.score}</b></td>
+        <td>${Number(r.avgSec).toFixed(2)}s</td>
+        <td>${Number(r.totalSec).toFixed(2)}s</td>
+        <td>${date}</td>
+      `;
+      lbBody.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function guessPlayerName() {
+    // Telegram: берём first_name/username
+    if (tg?.initDataUnsafe?.user) {
+      const u = tg.initDataUnsafe.user;
+      return u.username ? `@${u.username}` : (u.first_name || 'Игрок');
+    }
+    // Browser: спросим один раз
+    const key = 'toxic_player_name';
+    const saved = localStorage.getItem(key);
+    if (saved) return saved;
+
+    const name = prompt('Как тебя записать в лидерборд? (можно оставить пустым)') || '';
+    const trimmed = name.trim();
+    if (trimmed) localStorage.setItem(key, trimmed);
+    return trimmed || 'Игрок';
+  }
+
+})();
