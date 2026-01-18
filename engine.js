@@ -1,10 +1,10 @@
-const loadingScreen = document.getElementById("loadingScreen");
-const levelScreen = document.getElementById("levelScreen");
-const prepScreen = document.getElementById("prepScreen");
 const gameContainer = document.getElementById("gameContainer");
-
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
+const loadingScreen = document.getElementById("loadingScreen");
+
+const levelScreen = document.getElementById("levelScreen");
+const prepScreen = document.getElementById("prepScreen");
 const prepMessage = document.getElementById("prepMessage");
 const startGameBtn = document.getElementById("startGameBtn");
 
@@ -16,15 +16,39 @@ let fakeButtons = [];
 let gameActive = false;
 let level = "easy";
 
-// Загрузка
+// --- Демотиваторы ---
+const demotivators = [
+  { text: "Ты даже пальцем не шевельнул", minTime: 0, maxTime: 5 },
+  { text: "Ого… это твой максимум?", minTime: 0, maxTime: 5 },
+  { text: "Ты думаешь это игра для слабаков?", minTime: 5, maxTime: 10 },
+  { text: "Неплохо… но смешно", minTime: 5, maxTime: 10 },
+  { text: "Хм, почти смог… можешь лучше", minTime: 10, maxTime: 15 },
+  { text: "Теперь ты начинаешь понимать, о чём игра", minTime: 10, maxTime: 15 },
+  { text: "Уже не так плохо… но попробуй снова", minTime: 15, maxTime: 20 },
+  { text: "Ты почти стал достойным", minTime: 15, maxTime: 20 },
+  { text: "Боже, это удивительно… ещё немного!", minTime: 20, maxTime: 25 },
+  { text: "Ты настоящий мастер… или думаешь, что таковым?", minTime: 20, maxTime: 25 },
+  { text: "Серьёзно? Снова промах?", minTime: 0, maxTime: 30 },
+  { text: "Не сдавайся… или сдавайся… решай сам", minTime: 0, maxTime: 30 },
+  { text: "Кажется, тебе нравится страдать", minTime: 0, maxTime: 30 },
+  { text: "Вау… ещё одна попытка!", minTime: 5, maxTime: 25 },
+  { text: "Ты думаешь, что можешь выиграть?", minTime: 10, maxTime: 30 },
+  { text: "Ха! Почти достиг вершины", minTime: 15, maxTime: 30 },
+  { text: "Продолжай… смелый или безумный?", minTime: 10, maxTime: 30 },
+  { text: "Почти как профи… почти", minTime: 15, maxTime: 30 },
+  { text: "Ты на шаг ближе к своей судьбе", minTime: 20, maxTime: 35 },
+  { text: "Сможешь ли ты сделать лучше?", minTime: 25, maxTime: 40 }
+];
+
+// --- Загрузка ---
 setTimeout(() => {
   loadingScreen.style.display = "none";
   levelScreen.style.display = "block";
 }, 1500);
 
-// Выбор уровня
-document.querySelectorAll(".levelButtons button").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
+// --- Выбор уровня ---
+document.querySelectorAll(".levelButtons button").forEach(btn => {
+  btn.addEventListener("click", () => {
     level = btn.getAttribute("data-level");
     levelScreen.style.display = "none";
     prepScreen.style.display = "block";
@@ -32,25 +56,25 @@ document.querySelectorAll(".levelButtons button").forEach(btn=>{
   });
 });
 
-// Подготовка к игре
-startGameBtn.addEventListener("click", ()=>{
+// --- Подготовка к игре ---
+startGameBtn.addEventListener("click", () => {
   prepScreen.style.display = "none";
   startGame();
 });
 
-// Получение саркастического сообщения для уровня
-function getPrepMessage(lvl){
+// --- Сообщения подготовки ---
+function getPrepMessage(lvl) {
   const messages = {
-    easy: "Ты выбрал легкий путь... не обольщайся!",
-    medium: "Средний? Думаешь, справишься?",
+    easy: "Ты выбрал лёгкий путь... не обольщайся!",
+    medium: "Средний? Думаешь справишься?",
     hard: "Сложный, но кто предупреждал?",
     insane: "Безумие. Вернись пока не поздно!"
   };
   return messages[lvl] || "Готов? Ну давай...";
 }
 
-// Начало игры
-function startGame(){
+// --- Начало игры ---
+function startGame() {
   score = 0;
   times = [];
   scoreText.textContent = "Очки: 0";
@@ -61,20 +85,52 @@ function startGame(){
   startTime = performance.now();
 
   spawnButtons();
-
   document.addEventListener("click", handleMissClick);
 }
 
-// Конец игры
-function endGame(){
+// --- Конец игры ---
+function endGame() {
   gameActive = false;
   document.removeEventListener("click", handleMissClick);
 
-  let avgTime = times.length>0 ? (times.reduce((a,b)=>a+b,0)/times.length)/1000 : 0;
-  let resultMsg = getEndMessage(score, avgTime);
-  alert(`${resultMsg}\nОчки: ${score}\nСреднее время: ${avgTime.toFixed(2)}s`);
+  const elapsed = (performance.now() - startTime) / 1000;
+  const avgTime = times.length > 0 ? (times.reduce((a, b) => a + b, 0) / times.length) / 1000 : 0;
 
-  // Показываем кнопку перезапуска
+  // Демотиватор
+  const phrases = demotivators.filter(d => elapsed >= d.minTime && elapsed < d.maxTime);
+  const phrase = phrases[Math.floor(Math.random() * phrases.length)] || { text: "Ну что же, попробуй снова!" };
+
+  // Очистка старых кнопок
+  if (realButton) realButton.remove();
+  fakeButtons.forEach(btn => btn.remove());
+  fakeButtons = [];
+
+  // Таймер над кнопкой
+  const timerMsg = document.createElement("p");
+  timerMsg.textContent = `Среднее время: ${avgTime.toFixed(2)}s`;
+  timerMsg.style.position = "absolute";
+  timerMsg.style.top = "20%";
+  timerMsg.style.left = "50%";
+  timerMsg.style.transform = "translateX(-50%)";
+  timerMsg.style.color = "#fff";
+  timerMsg.style.fontSize = "16px";
+  timerMsg.style.textAlign = "center";
+  gameContainer.appendChild(timerMsg);
+
+  // Демотиватор над кнопкой
+  const demotMsg = document.createElement("p");
+  demotMsg.textContent = phrase.text;
+  demotMsg.style.position = "absolute";
+  demotMsg.style.top = "30%";
+  demotMsg.style.left = "50%";
+  demotMsg.style.transform = "translateX(-50%)";
+  demotMsg.style.color = "#fff";
+  demotMsg.style.fontSize = "18px";
+  demotMsg.style.fontWeight = "700";
+  demotMsg.style.textAlign = "center";
+  gameContainer.appendChild(demotMsg);
+
+  // Кнопка перезапуска
   const restartBtn = document.createElement("button");
   restartBtn.textContent = "Вернись и докажи";
   restartBtn.style.position = "absolute";
@@ -87,47 +143,42 @@ function endGame(){
   restartBtn.style.backgroundColor = "#007aff";
   restartBtn.style.color = "#fff";
   restartBtn.style.cursor = "pointer";
-  restartBtn.addEventListener("click", ()=>{
+  restartBtn.addEventListener("click", () => {
+    timerMsg.remove();
+    demotMsg.remove();
     restartBtn.remove();
     startGame();
   });
   gameContainer.appendChild(restartBtn);
 }
 
-// Сообщения в конце игры
-function getEndMessage(score, avgTime){
-  if(score<5) return "Ого, ты реально это сделал… хуже, чем ожидалось!";
-  if(score<10) return "Хм, чуть лучше, но кто тебя этому учил?";
-  return "Ого, почти профессионал… думаешь, сможешь лучше?";
-}
-
-// Обработка промаха
-function handleMissClick(e){
-  if(!gameActive) return;
-  if(!e.target.classList.contains("correct") && !e.target.classList.contains("fake")){
+// --- Промах по пустому месту ---
+function handleMissClick(e) {
+  if (!gameActive) return;
+  if (!e.target.classList.contains("correct") && !e.target.classList.contains("fake")) {
     endGame();
   }
 }
 
-// Создание кнопок
-function spawnButtons(){
-  if(realButton) realButton.remove();
-  fakeButtons.forEach(btn=>btn.remove());
-  fakeButtons=[];
+// --- Создание кнопок ---
+function spawnButtons() {
+  if (realButton) realButton.remove();
+  fakeButtons.forEach(btn => btn.remove());
+  fakeButtons = [];
 
   realButton = document.createElement("button");
   realButton.classList.add("correct");
   realButton.textContent = "Нажми меня!";
   setButtonSizeAndPosition(realButton);
-  realButton.addEventListener("click", (e)=>{
+  realButton.addEventListener("click", e => {
     e.stopPropagation();
-    let elapsed = performance.now()-startTime;
+    const elapsed = performance.now() - startTime;
     times.push(elapsed);
     score++;
     scoreText.textContent = `Очки: ${score}`;
-    timerText.textContent = `Время: ${(elapsed/1000).toFixed(2)}s`;
+    timerText.textContent = `Время: ${(elapsed / 1000).toFixed(2)}s`;
 
-    if(Math.random()<0.5) moveButtonSmooth(realButton);
+    if (Math.random() < 0.5) moveButtonSmooth(realButton);
 
     spawnFakeButtons();
   });
@@ -136,27 +187,26 @@ function spawnButtons(){
   spawnFakeButtons();
 }
 
-// Ложные кнопки
-function spawnFakeButtons(){
-  let maxFakes = {"easy":2,"medium":3,"hard":4,"insane":5}[level] || 3;
+// --- Ложные кнопки ---
+function spawnFakeButtons() {
+  let maxFakes = { easy: 2, medium: 3, hard: 4, insane: 5 }[level] || 3;
 
-  for(let i=0;i<maxFakes;i++){
+  for (let i = 0; i < maxFakes; i++) {
     const fake = document.createElement("button");
     fake.classList.add("fake");
-    fake.textContent = ["Ложная","Не та","Ха!","Ты хотел это?"][Math.floor(Math.random()*4)];
+    fake.textContent = ["Ложная", "Не та", "Ха!", "Ты хотел это?"][Math.floor(Math.random() * 4)];
     setButtonSizeAndPosition(fake);
 
-    // Ложная кнопка обманывает
-    fake.addEventListener("mouseenter", ()=>{
+    fake.addEventListener("mouseenter", () => {
       const containerRect = gameContainer.getBoundingClientRect();
       const size = parseInt(fake.style.width);
-      const newX = Math.random()*(containerRect.width - size);
-      const newY = Math.random()*(containerRect.height - size/2);
-      fake.style.left = newX+"px";
-      fake.style.top = newY+"px";
+      const newX = Math.random() * (containerRect.width - size);
+      const newY = Math.random() * (containerRect.height - size / 2);
+      fake.style.left = newX + "px";
+      fake.style.top = newY + "px";
     });
 
-    fake.addEventListener("click", (e)=>{
+    fake.addEventListener("click", e => {
       e.stopPropagation();
       endGame();
     });
@@ -166,28 +216,32 @@ function spawnFakeButtons(){
   }
 }
 
-// Размер и позиция кнопки
-function setButtonSizeAndPosition(btn){
+// --- Размер и позиция кнопки ---
+function setButtonSizeAndPosition(btn) {
   const containerRect = gameContainer.getBoundingClientRect();
-  const size = Math.max(60,120-score*3);
-  btn.style.width = size+"px";
-  btn.style.height = size/2+"px";
-  btn.style.fontSize = Math.floor(size/5)+"px";
+  const size = Math.max(60, 120 - score * 3);
+  btn.style.width = size + "px";
+  btn.style.height = size / 2 + "px";
+  btn.style.fontSize = Math.min(Math.floor(size / 4), 16) + "px"; // масштабируем текст
+  btn.style.display = "flex";
+  btn.style.justifyContent = "center";
+  btn.style.alignItems = "center";
+  btn.style.position = "absolute";
 
-  const x = Math.random()*(containerRect.width - size);
-  const y = Math.random()*(containerRect.height - size/2);
-  btn.style.left = x+"px";
-  btn.style.top = y+"px";
+  const x = Math.random() * (containerRect.width - size);
+  const y = Math.random() * (containerRect.height - size / 2);
+  btn.style.left = x + "px";
+  btn.style.top = y + "px";
 }
 
-// Плавное перемещение реальной кнопки
-function moveButtonSmooth(btn){
+// --- Плавное перемещение реальной кнопки ---
+function moveButtonSmooth(btn) {
   const containerRect = gameContainer.getBoundingClientRect();
   const size = parseInt(btn.style.width);
-  const newX = Math.random()*(containerRect.width - size);
-  const newY = Math.random()*(containerRect.height - size/2);
+  const newX = Math.random() * (containerRect.width - size);
+  const newY = Math.random() * (containerRect.height - size / 2);
   btn.style.transition = "left 0.5s ease, top 0.5s ease";
-  btn.style.left = newX+"px";
-  btn.style.top = newY+"px";
-  setTimeout(()=>{btn.style.transition="";},600);
+  btn.style.left = newX + "px";
+  btn.style.top = newY + "px";
+  setTimeout(() => { btn.style.transition = ""; }, 600);
 }
