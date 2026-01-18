@@ -5,28 +5,30 @@ export function startEngine(container, updateScoreCallback) {
 
   const realButtonLabel = "Нажми меня";
 
-  // Создание кнопки
   function createButton(label, type = "correct") {
     const btn = document.createElement("button");
     btn.innerText = label;
     btn.className = type;
 
-    // Размер кнопки
     const width = Math.random() * 80 + 80;
     const height = 50;
     btn.style.width = width + "px";
     btn.style.height = height + "px";
 
-    // Размер текста пропорционален кнопке
-    btn.style.fontSize = Math.max(width * 0.3, 12) + "px";
+    btn.style.fontSize = (width * 0.3) + "px";
 
     btn.style.top = Math.random() * 60 + "%";
     btn.style.left = Math.random() * 60 + "%";
 
+    // Центрируем текст
+    btn.style.display = "flex";
+    btn.style.justifyContent = "center";
+    btn.style.alignItems = "center";
+    btn.style.textAlign = "center";
+
     return btn;
   }
 
-  // Главный экран конца игры
   function showGameOver() {
     container.innerHTML = "";
     const gameOver = document.createElement("div");
@@ -53,7 +55,6 @@ export function startEngine(container, updateScoreCallback) {
     container.appendChild(gameOver);
   }
 
-  // Создание правильной кнопки
   function createRealButton() {
     const btn = createButton(realButtonLabel, "correct");
     container.appendChild(btn);
@@ -66,13 +67,12 @@ export function startEngine(container, updateScoreCallback) {
       score++;
       updateScoreCallback(score);
 
-      // Иногда перемещаем кнопку, иногда убираем и создаём заново
       if(Math.random() > 0.5) {
         btn.style.top = Math.random() * 60 + "%";
         btn.style.left = Math.random() * 60 + "%";
       } else {
         btn.remove();
-        setTimeout(createRealButton, 300); // возвращаем кнопку через 0.3 сек
+        setTimeout(createRealButton, 300);
       }
 
       spawnFakeButtons();
@@ -81,26 +81,32 @@ export function startEngine(container, updateScoreCallback) {
     return btn;
   }
 
-  // Создание ложных кнопок
   function spawnFakeButtons() {
+    // Удаляем старые
+    container.querySelectorAll("button.fake").forEach(btn => btn.remove());
+
     const count = Math.floor(Math.random() * 2) + 1;
     for(let i=0;i<count;i++){
       const fake = createButton("Ложная", "fake");
+
       container.appendChild(fake);
+
       fake.addEventListener("click", () => {
         showGameOver();
       });
+
+      setTimeout(() => {
+        if(fake.parentNode) fake.remove();
+      }, 2000);
     }
   }
 
-  // Промах по пустому месту
   container.addEventListener("click", (e)=>{
     if(e.target === container){
       showGameOver();
     }
   });
 
-  // Старт игры
   function startGame(){
     container.innerHTML = "";
     score = 0;
