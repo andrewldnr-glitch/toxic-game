@@ -21,7 +21,6 @@ body, html {
   font-weight: 700;
   background: linear-gradient(135deg, #141E30, #243B55);
   color: #fff;
-  transition: opacity 0.5s ease;
 }
 
 #logoText {
