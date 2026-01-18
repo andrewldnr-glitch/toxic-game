@@ -1,44 +1,101 @@
+body {
+  background: linear-gradient(135deg, #f2f2f7, #d0d0d5);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#loadingScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#gameLogo {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  font-weight: 800;
+  font-size: 48px;
+  color: #7fff00;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  user-select: none;
+  animation: logoPulse 1.5s infinite alternate;
+}
+
+@keyframes logoPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+#loadingMessage {
+  font-size: 16px;
+  color: #6c6c70;
+  margin-bottom: 20px;
+  text-align: center;
+  max-width: 300px;
+}
+
+.loader {
+  width: 60px;
+  height: 10px;
+  background: #007aff;
+  border-radius: 5px;
+  animation: loaderAnim 1s infinite alternate;
+}
+
+@keyframes loaderAnim {
+  0% { transform: scaleX(0.3); }
+  100% { transform: scaleX(1); }
+}
+
 #gameContainer {
   position: relative;
   min-height: 400px;
   width: 400px;
   max-width: 90%;
-  margin: 50px auto;
   padding: 20px;
-  background: #f2f2f7;
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-align: center;
 }
 
-button {
-  position: absolute;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
+/* Кнопки */
 button.correct {
-  background: #007aff;
+  background-color: #007aff;
   color: #fff;
-  width: 100px;
-  height: 50px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  position: absolute;
+  transition: all 0.2s ease;
+  font-weight: 600;
 }
 
 button.fake {
-  background: #ff3b30;
+  background-color: #ff3b30;
   color: #fff;
-  width: 100px;
-  height: 50px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  position: absolute;
+  transition: all 0.2s ease;
+  font-weight: 600;
 }
 
-button:hover { filter: brightness(1.1); }
-button:active { transform: translateY(2px); }
+p.social {
+  font-weight: bold;
+  margin: 10px 0 5px 0;
+}
 
-.sub { font-size: 14px; color: #6c6c70; opacity: 0.8; margin: 4px 0; }
-.social { font-weight: 500; color: #007aff; margin-top: 6px; }
+p.sub {
+  font-size: 14px;
+  margin: 5px 0;
+  color: #444;
+}
