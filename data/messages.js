@@ -7,8 +7,8 @@ export const TOXIC_BY_SCORE = {
 };
 
 export function getToxicMessage(score){
-  const keys=Object.keys(TOXIC_BY_SCORE).map(Number).filter(k=>score>=k);
-  const key=Math.max(...keys);
-  const arr=TOXIC_BY_SCORE[key];
-  return arr[Math.floor(Math.random()*arr.length)];
+  const keys = Object.keys(TOXIC_BY_SCORE).map(Number).filter(k => score >= k);
+  const key = Math.max(...keys);
+  const arr = TOXIC_BY_SCORE[key];
+  return arr[Math.floor(Math.random() * arr.length)];
 }
