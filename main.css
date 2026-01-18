@@ -70,7 +70,7 @@ body, html {
 }
 
 
-#scoreText, #timerText {
+#scoreText, #timerText, #levelText {
   position: absolute;
   top: 10px;
   font-size: 18px;
@@ -78,6 +78,13 @@ body, html {
 }
 
 #scoreText { left: 20px; }
+#levelText {
+  left: 20px;
+  top: 34px;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.85;
+}
 #timerText { right: 20px; }
 
 button.correct {
