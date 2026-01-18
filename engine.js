@@ -1,3 +1,4 @@
+console.log("ENGINE LOADED");
 const gameContainer = document.getElementById("gameContainer");
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
