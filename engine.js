@@ -616,7 +616,6 @@
       lbBody.appendChild(tr);
     });
   }
-
   function escapeHtml(s) {
     return String(s)
       .replaceAll('&', '&amp;')
