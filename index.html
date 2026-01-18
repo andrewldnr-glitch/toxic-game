@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>TOXIC Game</title>
-  <link rel="stylesheet" href="main.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOXIC Premium Game</title>
+<link rel="stylesheet" href="main.css">
 </head>
 <body>
-  <!-- Загрузочный экран -->
+  <!-- Загрузка -->
   <div id="loadingScreen">
     <div id="gameLogo">TOXIC</div>
-    <p id="loadingMessage">Загрузка...</p>
+    <div id="loadingMessage">Проверяем твою реакцию...</div>
     <div class="loader"></div>
   </div>
 
-  <!-- Основной контейнер игры -->
-  <div id="gameContainer" style="display:none;"></div>
+  <!-- Игровой контейнер -->
+  <div id="gameContainer" style="display:none;">
+    <p class="social" id="scoreText">Очки: 0</p>
+    <p class="sub" id="timerText">Время: 0.00s</p>
+  </div>
 
-  <script type="module" src="game.js"></script>
+<script src="engine.js"></script>
 </body>
 </html>
