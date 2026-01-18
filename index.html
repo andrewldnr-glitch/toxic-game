@@ -7,18 +7,36 @@
 <link rel="stylesheet" href="main.css">
 </head>
 <body>
-  <!-- Загрузка -->
-  <div id="loadingScreen">
-    <div id="gameLogo">TOXIC</div>
-    <div id="loadingMessage">Проверяем твою реакцию...</div>
-    <div class="loader"></div>
-  </div>
 
-  <!-- Игровой контейнер -->
-  <div id="gameContainer" style="display:none;">
-    <p class="social" id="scoreText">Очки: 0</p>
-    <p class="sub" id="timerText">Время: 0.00s</p>
+<!-- Загрузка -->
+<div id="loadingScreen">
+  <div id="gameLogo">TOXIC</div>
+  <div id="loadingMessage">Проверяем твою реакцию...</div>
+  <div class="loader"></div>
+</div>
+
+<!-- Выбор уровня сложности -->
+<div id="levelScreen" style="display:none;">
+  <p class="social">Выбери уровень, если осмелишься</p>
+  <div class="levelButtons">
+    <button data-level="easy">Easy — «Боишься?»</button>
+    <button data-level="medium">Medium — «Думаешь справишься?»</button>
+    <button data-level="hard">Hard — «Удачи, тебе понадобится!»</button>
+    <button data-level="insane">Insane — «Только для отчаянных»</button>
   </div>
+</div>
+
+<!-- Подготовка к игре -->
+<div id="prepScreen" style="display:none;">
+  <p class="social" id="prepMessage"></p>
+  <button id="startGameBtn">Нажми если смелый</button>
+</div>
+
+<!-- Игровой контейнер -->
+<div id="gameContainer" style="display:none;">
+  <p class="social" id="scoreText">Очки: 0</p>
+  <p class="sub" id="timerText">Время: 0.00s</p>
+</div>
 
 <script src="engine.js"></script>
 </body>
