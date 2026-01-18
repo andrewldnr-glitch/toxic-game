@@ -1,4 +1,13 @@
 console.log("ENGINE LOADED");
+const loadingScreen = document.getElementById("loadingScreen");
+const levelScreen = document.getElementById("levelScreen");
+
+setTimeout(() => {
+  loadingScreen.style.display = "none";
+  levelScreen.style.display = "flex";
+  console.log("LOADING HIDDEN, LEVEL SCREEN SHOWN");
+}, 1500);
+
 const gameContainer = document.getElementById("gameContainer");
 const scoreText = document.getElementById("scoreText");
 const timerText = document.getElementById("timerText");
