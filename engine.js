@@ -8,11 +8,37 @@ const startGameBtn = document.getElementById("startGameBtn");
 const resultScreen = document.getElementById("resultScreen");
 const resultText = document.getElementById("resultText");
 const retryBtn = document.getElementById("retryBtn");
+const scoreText = document.getElementById("scoreText");
+const timerText = document.getElementById("timerText");
 
 let realButton = null;
 let fakeButtons = [];
 let score = 0;
 let gameActive = false;
+
+let startTime = 0;
+let timerInterval = null;
+let clickTimes = [];
+
+// ===== Демотиваторы =====
+const demotivators = [
+  "Да ладно, это всё, что ты смог?",
+  "Серьёзно? Дальше хуже.",
+  "Попробуй ещё раз, может повезёт.",
+  "Может, это не твоё?",
+  "Ты уже устал, да?",
+  "Почти, но не совсем.",
+  "Ниже плинтуса.",
+  "Даже кот справился бы лучше."
+];
+
+function getDemotivator(duration) {
+  // Чем дольше играл — тем мягче фраза
+  if (duration < 5) return demotivators[6];
+  if (duration < 10) return demotivators[4];
+  if (duration < 20) return demotivators[2];
+  return demotivators[1];
+}
 
 // === LOADING ===
 setTimeout(() => {
@@ -37,13 +63,25 @@ startGameBtn.addEventListener("click", () => {
 // === START GAME ===
 function startGame() {
   score = 0;
+  clickTimes = [];
   gameActive = true;
+  startTime = performance.now();
+
   resultScreen.style.display = "none";
   gameContainer.innerHTML = "";
   gameContainer.style.display = "block";
+  scoreText.textContent = `Очки: ${score}`;
+  timerText.textContent = `Время: 0.00s`;
 
   spawnRealButton();
   spawnFakeButtons();
+
+  // Таймер
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const elapsed = (performance.now() - startTime) / 1000;
+    timerText.textContent = `Время: ${elapsed.toFixed(2)}s`;
+  }, 10);
 }
 
 // === SPAWN REAL BUTTON ===
@@ -56,13 +94,16 @@ function spawnRealButton() {
   realButton.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!gameActive) return;
+
     score++;
+    const now = performance.now();
+    clickTimes.push(now - startTime);
+    startTime = now; // reset для следующего интервала
+
     realButton.textContent = `ЖМИ (${score})`;
 
-    // при каждом клике шансы появлений ложных кнопок
     spawnFakeButtons();
 
-    // случайно реальная кнопка перемещается или нет
     if (Math.random() < 0.7) moveButton(realButton);
   });
 
@@ -71,17 +112,16 @@ function spawnRealButton() {
 
 // === SPAWN FAKE BUTTONS ===
 function spawnFakeButtons() {
-  // удалить старые
   fakeButtons.forEach(b => b.remove());
   fakeButtons = [];
 
-  const count = Math.min(3, Math.floor(score / 2) + 1); // чем выше счет, тем больше
+  const count = Math.min(3, Math.floor(score / 2) + 1);
   for (let i = 0; i < count; i++) {
     const btn = document.createElement("button");
     const texts = ["ЖМИ", "ЖМи", "ЖМИ!", "ЖМИ?"];
     btn.textContent = texts[Math.floor(Math.random() * texts.length)];
 
-    const sizeMod = 0.8 + Math.random() * 0.4; // 80% - 120%
+    const sizeMod = 0.8 + Math.random() * 0.4;
     styleButton(btn, 120 * sizeMod, 60 * sizeMod, 18 * sizeMod);
 
     placeAwayFromReal(btn);
@@ -159,7 +199,18 @@ function endGame() {
   fakeButtons.forEach(b => b.remove());
   gameContainer.style.display = "none";
 
-  resultText.textContent = `Очков: ${score}. Могло быть хуже.`;
+  if (timerInterval) clearInterval(timerInterval);
+
+  // Среднее время реакции
+  const avg = clickTimes.length
+    ? (clickTimes.reduce((a,b)=>a+b,0)/clickTimes.length)/1000
+    : 0;
+
+  // Демотиватор
+  const totalTime = clickTimes.reduce((a,b)=>a+b,0)/1000;
+  const demotivator = getDemotivator(totalTime);
+
+  resultText.innerHTML = `Очков: ${score}<br>Среднее время реакции: ${avg.toFixed(2)}s<br><i>${demotivator}</i>`;
   resultScreen.style.display = "flex";
 }
 
