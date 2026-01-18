@@ -9,13 +9,13 @@
 <body>
 
   <!-- Загрузка -->
-  <div id="loadingScreen">
+  <div id="loadingScreen" class="screen active">
     <h1 id="logoText">Toxic</h1>
     <p>Приготовься к испытанию!</p>
   </div>
 
   <!-- Выбор уровня -->
-  <div id="levelScreen" style="display:none;">
+  <div id="levelScreen" class="screen">
     <h2>Выбери уровень сложности</h2>
     <div class="levelButtons">
       <button data-level="easy">Лёгкий</button>
@@ -26,15 +26,21 @@
   </div>
 
   <!-- Экран подготовки -->
-  <div id="prepScreen" style="display:none;">
+  <div id="prepScreen" class="screen">
     <p id="prepMessage">Готов? Ну давай...</p>
-    <button id="startGameBtn">Начать игру</button>
+    <button id="startGameBtn">Ладно, я попробую</button>
   </div>
 
-  <!-- Игровой контейнер -->
-  <div id="gameContainer" style="display:none;">
+  <!-- ИГРА -->
+  <div id="gameContainer" class="game">
     <div id="scoreText">Очки: 0</div>
     <div id="timerText">Время: 0.00s</div>
+  </div>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <div id="resultScreen" class="screen">
+    <h2 id="resultText"></h2>
+    <button id="retryBtn">Вернись и докажи</button>
   </div>
 
   <script src="engine.js"></script>
